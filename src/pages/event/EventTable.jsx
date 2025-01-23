@@ -48,7 +48,7 @@ const EventTable = () => {
     if (!loading) {
       timeOut = setTimeout(() => {
         setPageState(loading);
-      }, 200);
+      }, 400);
     }
     return () => clearTimeout(timeOut);
   }, [loading]);
