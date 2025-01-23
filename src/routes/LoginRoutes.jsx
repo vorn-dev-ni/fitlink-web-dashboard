@@ -5,6 +5,7 @@ import Loadable from 'components/Loadable';
 import SimpleLoading from 'components/SimpleLoading';
 import MinimalLayout from 'layout/MinimalLayout';
 import { Navigate } from 'react-router';
+const ErrorPage = Loadable(lazy(() => import('pages/ErrorPage')));
 
 // render - login
 const AuthLogin = Loadable(lazy(() => import('pages/authentication/login')));
@@ -15,6 +16,7 @@ const AuthLogin = Loadable(lazy(() => import('pages/authentication/login')));
 const LoginRoutes = {
   path: '/',
   element: <MinimalLayout />,
+  errorElement: <ErrorPage />,
   children: [
     {
       path: '/login',

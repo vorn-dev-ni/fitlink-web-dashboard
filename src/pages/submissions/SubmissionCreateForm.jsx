@@ -5,9 +5,7 @@ import MainCard from 'components/MainCard';
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-const fileTypes = ['JPG', 'PNG', 'GIF'];
 const SubmissionCreateForm = () => {
-  const [file, setFile] = useState(null);
   const { palette } = useTheme();
   const onDrop = (acceptedFiles) => {
     console.log(acceptedFiles);
