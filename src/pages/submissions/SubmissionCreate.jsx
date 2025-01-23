@@ -5,10 +5,20 @@ import { Box, Button, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import SubmissionCreateForm from './SubmissionCreateForm';
 import { useNavigate } from 'react-router';
+import SimpleLoading from 'components/SimpleLoading';
+import { useEffect, useState } from 'react';
 export default function SubmissionCreate() {
   // const currUser = auth;
   const { palette } = useTheme();
   const navigate = useNavigate();
+  const [pageState, setPageState] = useState(true);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setPageState(false), 400);
+    return () => clearTimeout(timeoutId);
+  }, []);
+  if (pageState) {
+    return <SimpleLoading />;
+  }
   return (
     <Box>
       <Stack
