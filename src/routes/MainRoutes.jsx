@@ -4,14 +4,14 @@ import { lazy, Suspense } from 'react';
 import Loadable from 'components/Loadable';
 import SimpleLoading from 'components/SimpleLoading';
 import Dashboard from 'layout/Dashboard';
-import { ProtectedRoutes } from './ProtectedRoute';
-import { Navigate } from 'react-router';
-import MinimalLayout from 'layout/MinimalLayout';
 import SubmissionLayout from 'layout/Submission';
+import { Navigate } from 'react-router';
+import { ProtectedRoutes } from './ProtectedRoute';
 const Color = Loadable(lazy(() => import('pages/component-overview/color')));
 const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
 const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
+const ErrorPage = Loadable(lazy(() => import('pages/ErrorPage')));
 
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
@@ -28,6 +28,7 @@ const SubmissionEditViewPage = Loadable(lazy(() => import('pages/submissions/Sub
 
 const MainRoutes = {
   path: '/',
+  errorElement: <ErrorPage />,
   element: (
     <Suspense fallback={<SimpleLoading />}>
       <ProtectedRoutes>
