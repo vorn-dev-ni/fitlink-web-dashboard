@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from 'utils/config/firebase';
+import { collectionNames } from 'utils/helper';
 
 export const useEventsData = () => {
   const [events, setEvents] = useState([]);
@@ -8,7 +9,7 @@ export const useEventsData = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const eventsCollections = collection(db, 'events');
+    const eventsCollections = collection(db, collectionNames.event);
     // snapshot listener for real-time updates
     const unsubscribe = onSnapshot(
       eventsCollections,

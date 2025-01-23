@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from 'utils/config/firebase';
-import { formatDateApp } from 'utils/helper';
+import { collectionNames, formatDateApp } from 'utils/helper';
 
 export const useSubmissions = () => {
   const [formEvents, setFormSubmit] = useState([]);
@@ -9,7 +9,7 @@ export const useSubmissions = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const formCollections = collection(db, 'approval');
+    const formCollections = collection(db, collectionNames.submission);
     // snapshot listener for real-time updates
     const unsubscribe = onSnapshot(
       formCollections,

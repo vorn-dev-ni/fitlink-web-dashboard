@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { auth, db } from 'utils/config/firebase';
 import { AppException, FirebaseException } from 'utils/exception';
-import { delay } from 'utils/helper';
+import { collectionNames, delay } from 'utils/helper';
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -124,7 +124,7 @@ export const useAuth = () => {
 
   const getUserById = async (userId) => {
     try {
-      const docRef = doc(db, 'users', userId);
+      const docRef = doc(db, collectionNames.users, userId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         console.log('current user is ', docSnap.data());
