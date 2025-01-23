@@ -41,7 +41,26 @@ export default function ThemeCustomization({ children }) {
       },
       palette: theme.palette,
       customShadows: themeCustomShadows,
-      typography: themeTypography
+      typography: themeTypography,
+      components: {
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              borderBottom: 'none !important', // Remove border for TableCells inside TableHead,
+              borderWidth: '2px !important',
+              backgroundColor: '#f5f5f5 !important'
+            }
+          }
+        },
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              borderBottom: 'none !important', // Remove border for TableCells inside TableHead
+              backgroundColor: '#f5f5f5 !important'
+            }
+          }
+        }
+      }
     }),
     [theme, themeTypography, themeCustomShadows]
   );

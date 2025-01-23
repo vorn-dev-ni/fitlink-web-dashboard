@@ -1,12 +1,14 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 
 // project import
 import Loadable from 'components/Loadable';
+import SimpleLoading from 'components/SimpleLoading';
 import MinimalLayout from 'layout/MinimalLayout';
+import { Navigate } from 'react-router';
 
 // render - login
 const AuthLogin = Loadable(lazy(() => import('pages/authentication/login')));
-const AuthRegister = Loadable(lazy(() => import('pages/authentication/register')));
+// const AuthRegister = Loadable(lazy(() => import('pages/authentication/register')));
 
 // ==============================|| AUTH ROUTING ||============================== //
 
@@ -16,11 +18,15 @@ const LoginRoutes = {
   children: [
     {
       path: '/login',
-      element: <AuthLogin />
+      element: (
+        <Suspense fallback={<SimpleLoading />}>
+          <AuthLogin />
+        </Suspense>
+      )
     },
     {
-      path: '/register',
-      element: <AuthRegister />
+      path: '*',
+      element: <Navigate to={'/404'} />
     }
   ]
 };

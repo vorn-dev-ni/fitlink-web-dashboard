@@ -10,8 +10,8 @@ import DrawerHeader from './DrawerHeader';
 import DrawerContent from './DrawerContent';
 import MiniDrawerStyled from './MiniDrawerStyled';
 
-import { drawerWidth } from 'config';
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { drawerWidth } from 'utils/config/config';
 
 // ==============================|| MAIN LAYOUT - DRAWER ||============================== //
 

@@ -10,9 +10,10 @@ import ThemeOption from './theme';
 // ==============================|| DEFAULT THEME - PALETTE ||============================== //
 
 export default function Palette(mode, presetColor) {
-  const colors = presetPalettes;
+  const colors = { ...presetPalettes }; // Clone the palette to avoid mutation
 
-  let greyPrimary = [
+  // Define grey color scales
+  const greyPrimary = [
     '#ffffff',
     '#fafafa',
     '#f5f5f5',
@@ -25,11 +26,17 @@ export default function Palette(mode, presetColor) {
     '#141414',
     '#000000'
   ];
-  let greyAscent = ['#fafafa', '#bfbfbf', '#434343', '#1f1f1f'];
-  let greyConstant = ['#fafafb', '#e6ebf1'];
 
-  colors.grey = [...greyPrimary, ...greyAscent, ...greyConstant];
+  const greyAscent = ['#fafafa', '#bfbfbf', '#434343', '#1f1f1f'];
+  const greyConstant = ['#fafafb', '#e6ebf1'];
 
+  // Combine all grey colors into a single array
+  const greyColors = [...greyPrimary, ...greyAscent, ...greyConstant];
+
+  // Assign the grey colors to the colors object (using a new object to avoid mutation)
+  colors.grey = greyColors;
+
+  // Get the palette color from ThemeOption function
   const paletteColor = ThemeOption(colors, presetColor, mode);
 
   return createTheme({
@@ -39,7 +46,7 @@ export default function Palette(mode, presetColor) {
         black: '#000',
         white: '#fff'
       },
-      ...paletteColor,
+      ...paletteColor, // Merge palette colors from ThemeOption
       text: {
         primary: paletteColor.grey[700],
         secondary: paletteColor.grey[500],

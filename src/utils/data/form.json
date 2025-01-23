@@ -1,0 +1,19 @@
+{
+  "contact_name": "John Doe",
+  "email": "johndoe@example.com",
+  "phone_number": "+1234567890",
+  "gym_name": "Fitness Pro Gym",
+  "trainer_certification": true,
+  "proof_document": "https://example.com/uploads/proof_document.pdf",
+  "address": {
+    "street": "123 Main Street",
+    "city": "Los Angeles",
+    "state": "California",
+    "postal_code": "90001",
+    "country": "United States"
+  },
+  "description": "A state-of-the-art gym with top-notch equipment and certified trainers.",
+  "website": "https://fitnessprogym.com",
+  "submission_date": "2025-01-22",
+  "status": "pending"
+}

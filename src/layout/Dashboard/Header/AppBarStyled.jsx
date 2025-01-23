@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 // material-ui
 import { styled } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
+import { drawerWidth } from 'utils/config/config';
 
 // project import
-import { drawerWidth } from 'config';
 
 // ==============================|| HEADER - APP BAR STYLED ||============================== //
 
