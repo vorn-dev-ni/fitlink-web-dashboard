@@ -3,14 +3,26 @@ import { Box, Container, FormControl, FormControlLabel, Grid, Radio, RadioGroup,
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'components/MainCard';
 import { useState } from 'react';
-import { FileUploader } from 'react-drag-drop-files';
+import { useDropzone } from 'react-dropzone';
+
 const fileTypes = ['JPG', 'PNG', 'GIF'];
 const SubmissionCreateForm = () => {
   const [file, setFile] = useState(null);
   const { palette } = useTheme();
-  const handleChange = (file) => {
-    setFile(file);
+  const onDrop = (acceptedFiles) => {
+    console.log(acceptedFiles);
   };
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/msword': ['.doc'],
+      'text/plain': ['.txt']
+    },
+    multiple: false
+  });
   return (
     <Stack spacing={4}>
       <MainCard>
@@ -79,37 +91,35 @@ const SubmissionCreateForm = () => {
                   width: '100%'
                 }}
               >
-                <FileUploader handleChange={handleChange} name="file" types={fileTypes} style={{ width: '100%' }}>
-                  {/* Custom design inside the drop zone with MUI components */}
-                  <Stack
+                <div
+                  {...getRootProps()}
+                  style={{
+                    padding: '16px',
+                    border: '2px dashed rgba(195, 216, 250, 0.88)',
+                    borderRadius: '12px',
+                    backgroundColor: 'rgb(241, 246, 254)'
+                  }}
+                >
+                  <input {...getInputProps()} />
+                  <Container
                     sx={{
-                      //   backgroundColor: 'red',
-                      padding: 4,
-                      border: '2px dashed rgba(195, 216, 250, 0.88)',
-                      borderRadius: '12px'
+                      padding: 2,
+                      textAlign: 'center',
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      minHeight: '200px'
                     }}
                   >
-                    <Container
-                      sx={{
-                        padding: '10',
-                        textAlign: 'center',
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        minHeight: '200px',
-                        backgroundColor: 'rgb(241, 246, 254)'
-                      }}
-                    >
-                      <Stack alignItems={'center'} spacing={2}>
-                        <UploadOutlined style={{ fontSize: '50px', color: palette.primary.dark }} />
-                        <Typography variant="h5" color={palette.primary.dark}>
-                          Drag or Upload File
-                        </Typography>
-                      </Stack>
-                    </Container>
-                  </Stack>
-                </FileUploader>
+                    <Stack alignItems={'center'} spacing={2}>
+                      <UploadOutlined style={{ fontSize: '50px', color: palette.primary.dark }} />
+                      <Typography variant="h5" color={palette.primary.dark}>
+                        Drag or Upload File
+                      </Typography>
+                    </Stack>
+                  </Container>
+                </div>
               </Box>
             </Stack>
           </Grid>

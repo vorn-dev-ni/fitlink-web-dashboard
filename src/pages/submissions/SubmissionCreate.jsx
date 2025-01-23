@@ -7,10 +7,12 @@ import SubmissionCreateForm from './SubmissionCreateForm';
 import { useNavigate } from 'react-router';
 import SimpleLoading from 'components/SimpleLoading';
 import { useEffect, useState } from 'react';
+import { useSubmissionActions } from 'hooks/submissions/useSubmissionAction';
 export default function SubmissionCreate() {
   // const currUser = auth;
   const { palette } = useTheme();
   const navigate = useNavigate();
+  const { DeleteSubmission, createSubmission, error, loading } = useSubmissionActions();
   const [pageState, setPageState] = useState(true);
   useEffect(() => {
     const timeoutId = setTimeout(() => setPageState(false), 400);
