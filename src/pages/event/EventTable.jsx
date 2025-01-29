@@ -58,7 +58,7 @@ const EventTable = () => {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', marginTop: guidelines.spacing.py25 }}>
-      <AppTable columns={getColumns} rows={getRows} rowsPerPageOptions={[5, 10]} initialRowsPerPage={5} />
+      {/* <AppTable columns={getColumns} rows={getRows} rowsPerPageOptions={[5, 10]} initialRowsPerPage={5} />   */}
     </Paper>
   );
 };
