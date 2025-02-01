@@ -11,14 +11,14 @@ const Color = Loadable(lazy(() => import('pages/component-overview/color')));
 const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
 const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
-const ErrorPage = Loadable(lazy(() => import('pages/ErrorPage')));
+const ErrorPage = Loadable(lazy(() => import('pages/error/ErrorPage')));
 
 // render - sample page
-const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 
 const UserPage = Loadable(lazy(() => import('pages/users/UserPage')));
 const EventPage = Loadable(lazy(() => import('pages/event/EventPage')));
 const SubmitPage = Loadable(lazy(() => import('pages/submissions/SubmitPage')));
+const UserCreateEdit = Loadable(lazy(() => import('pages/users/id/UserCreateEdit')));
 
 const SubmissionCreatePage = Loadable(lazy(() => import('pages/submissions/SubmissionCreate')));
 
@@ -56,10 +56,6 @@ const MainRoutes = {
       ]
     },
     {
-      path: 'sample-page',
-      element: <SamplePage />
-    },
-    {
       path: 'shadow',
       element: <Shadow />
     },
@@ -69,7 +65,20 @@ const MainRoutes = {
     },
     {
       path: 'users',
-      element: <UserPage />
+      children: [
+        {
+          path: '',
+          element: <UserPage />
+        },
+        {
+          path: ':id/edit',
+          element: <UserCreateEdit />
+        },
+        {
+          path: 'create',
+          element: <UserCreateEdit />
+        }
+      ]
     },
     {
       path: 'events',

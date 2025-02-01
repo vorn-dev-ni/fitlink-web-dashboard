@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { db } from 'utils/config/firebase';
+import { collectionNames } from 'utils/helper';
 
-const useUsersCollection = () => {
+const useUserData = (sortBy) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const usersCollection = collection(db, collectionNames.users);
+  const usersQuery = query(usersCollection, orderBy('createdAt', sortBy));
   useEffect(() => {
-    const usersCollection = collection(db, 'users');
-    // snapshot listener for real-time updates
     const unsubscribe = onSnapshot(
-      usersCollection,
+      usersQuery,
       (snapshot) => {
         const usersData = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -31,9 +31,29 @@ const useUsersCollection = () => {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [sortBy]);
 
-  return { users, loading, error };
+  const getUserById = async (userId) => {
+    try {
+      const docRef = doc(db, collectionNames.users, userId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.data() != null) {
+        return docSnap.data();
+      } else {
+        console.log('No such document!');
+        return null;
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.code) {
+        throw new FirebaseException(error.message, error.code);
+      }
+      throw new AppException(error);
+    }
+  };
+
+  return { users, loading, error, getUserById };
 };
 
-export default useUsersCollection;
+export default useUserData;

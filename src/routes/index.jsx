@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 // project import
 import MainRoutes from './MainRoutes';
 import LoginRoutes from './LoginRoutes';
-import NotFound from 'pages/NotFound';
+import NotFound from 'pages/error/NotFound';
 
 // ==============================|| ROUTING RENDER ||============================== //
 

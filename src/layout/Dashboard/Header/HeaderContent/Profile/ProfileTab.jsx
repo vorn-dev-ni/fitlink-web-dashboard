@@ -13,11 +13,11 @@ import ProfileOutlined from '@ant-design/icons/ProfileOutlined';
 import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import WalletOutlined from '@ant-design/icons/WalletOutlined';
-import { useAuth } from 'hooks';
+import { useAuthAction } from 'hooks';
 
 export default function ProfileTab() {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { handleLogout } = useAuth();
+  const { handleLogout } = useAuthAction();
 
   const handleListItemClick = (index) => {
     setSelectedIndex(index);

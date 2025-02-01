@@ -15,9 +15,7 @@ export const useSubmissions = () => {
       formCollections,
       (snapshot) => {
         const formApprovals = snapshot.docs.map((doc) => {
-          const timestamp = doc.data()?.submission_date; // Assuming the field is named 'timestampField'
-          console.log('timp stamp is ', new Date(timestamp.seconds * 1000));
-
+          const timestamp = doc.data()?.submission_date;
           return {
             id: doc.id,
             email: doc.data()?.email,

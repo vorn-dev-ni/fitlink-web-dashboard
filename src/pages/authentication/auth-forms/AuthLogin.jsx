@@ -27,14 +27,14 @@ import AnimateButton from 'components/@extended/AnimateButton';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import AppSnackBar from 'components/SnackBar';
-import { useAuth } from 'hooks';
+import { useAuthAction } from 'hooks';
 import { loginInitalValues, loginValidationSchema } from 'utils/validator';
 
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ isDemo = false }) {
   const [checked, setChecked] = React.useState(false);
-  const { handleLogin, error } = useAuth();
+  const { handleLogin, error } = useAuthAction();
   const [open, SetOpen] = useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {

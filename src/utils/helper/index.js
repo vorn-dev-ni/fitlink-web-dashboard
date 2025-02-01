@@ -7,6 +7,20 @@ export const formatDateApp = (date) => {
 };
 export const collectionNames = {
   users: 'users',
-  submission: 'approval',
+  submission: 'submissions',
   event: 'events'
+};
+
+export const resetScroll = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+export const getFilePathFromUrl = (downloadUrl) => {
+  const url = new URL(downloadUrl); // Create a URL object to easily parse the URL
+  const path = url.pathname.split('/o/')[1]; // Extract the file path part
+  return decodeURIComponent(path);
+};
+
+export const trimWhiteSpace = (value) => {
+  return value.replace(/\s+/g, '');
 };

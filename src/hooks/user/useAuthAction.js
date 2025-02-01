@@ -1,24 +1,38 @@
-import { defaultUser, userAtom } from 'atom';
+import { defaultUser } from 'atom';
 import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { useSetAtom } from 'jotai';
+import { httpsCallable } from 'firebase/functions';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { auth, db } from 'utils/config/firebase';
-import { AppException, FirebaseException } from 'utils/exception';
-import { collectionNames, delay } from 'utils/helper';
+import { auth, db, functions } from 'utils/config/firebase';
+import { collectionNames, delay, getFilePathFromUrl } from 'utils/helper';
+import useUsersCollection from './useUserData';
+import { useSetAtom } from 'jotai';
+import { userAtom } from 'atom';
+import { doc, deleteDoc } from 'firebase/firestore';
+import useStorage from 'hooks/storage/useStorage';
 
-export const useAuth = () => {
+const useAuthAction = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { getUserById } = useUsersCollection();
+  const { deleteFile } = useStorage();
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAuth, setIsAuth] = useState(false);
   const setUser = useSetAtom(userAtom);
+
   const successUser = async (userId) => {
-    const userRole = (await getUserById(userId)) ?? '';
-    if (userRole === 'admin') {
+    const userRole = await getUserById(userId);
+    setUser({
+      uid: userRole?.uid,
+      fullName: userRole?.fullName,
+      email: userRole?.email?.trim(),
+      role: userRole?.role,
+      avatar: userRole?.avatar,
+      provider: userRole?.provider,
+      role: userRole?.role
+    });
+    if (userRole?.role === 'admin') {
       setIsAuth(true);
       setLoading(false);
 
@@ -45,19 +59,56 @@ export const useAuth = () => {
     await delay(500);
     setLoading(false);
   };
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('User is authenticated ', user?.uid);
-      if (user) {
-        setLoading(true);
-        successUser(user?.uid);
-      } else {
-        invalidUser();
+  const handleDeleteUser = async (id, avatar) => {
+    setLoading(true);
+    console.log('deleteing with ', id, avatar);
+    try {
+      await deleteDoc(doc(db, collectionNames.users, id));
+      if (avatar) {
+        const file = getFilePathFromUrl(avatar);
+        await deleteFile(file);
+        console.log('successfully delete file !!!');
       }
-    });
-    return () => unsubscribe();
-  }, []);
 
+      console.log('user successfully deleted !!!');
+    } catch (error) {
+      const errorMessage = error.message;
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleUpdateCreate = async (id, params) => {
+    setLoading(true);
+    try {
+      const createUser = httpsCallable(functions, 'createEditUser');
+
+      delete params.firstName;
+      delete params.lastName;
+      // console.log('params is ', params);
+      const result = await createUser({
+        ...params,
+        photoURL: params?.avatar ?? '',
+        type: id ? 'edit' : 'create',
+        uid: id
+      });
+
+      console.log('user successfully created !!!', result.data);
+    } catch (error) {
+      if (params?.avatar) {
+        const file = getFilePathFromUrl(params?.avatar);
+        await deleteFile(file);
+      }
+
+      // const errorCode = error.code;
+      const errorMessage = error.message;
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleLogout = async () => {
     try {
       console.log('logging user out');
@@ -67,9 +118,9 @@ export const useAuth = () => {
       setUser(defaultUser);
       //   await  auth.currentUser.reload();
     } catch (error) {
-      const errorCode = error.code;
       const errorMessage = error.message;
       setError(errorMessage);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -85,7 +136,6 @@ export const useAuth = () => {
         await successUser(userCredential.user?.uid);
         await auth.currentUser.reload();
         // await getUserById(userCredential.user?.uid);
-        console.log('User logged in successfully:', userCredential.user);
         return true;
       }
       return false;
@@ -113,45 +163,24 @@ export const useAuth = () => {
         }
       }
 
-      console.log(errorMessage);
-
       setError(errorMessage);
+      throw errorMessage;
     } finally {
       setLoading(false);
     }
-    return false;
   };
 
-  const getUserById = async (userId) => {
-    try {
-      const docRef = doc(db, collectionNames.users, userId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        console.log('current user is ', docSnap.data());
-        const result = docSnap.data();
-        setUser({
-          uid: result?.uid,
-          fullName: result?.fullName,
-          email: result?.email,
-          role: result?.role,
-          avatar: result?.avatar,
-          provider: result?.provider,
-          role: result?.role
-        });
-        return docSnap.data()?.role;
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setLoading(true);
+        successUser(user?.uid);
       } else {
-        console.log('No such document!');
-        return null;
+        invalidUser();
       }
-    } catch (error) {
-      console.error(error);
-      if (error.code) {
-        throw new FirebaseException(error.message, error.code);
-      }
-      throw new AppException(error);
-    }
-  };
-
+    });
+    return () => unsubscribe();
+  }, []);
   return {
     isLoading,
     error,
@@ -159,6 +188,9 @@ export const useAuth = () => {
     handleLogout,
     auth,
     isAuth,
-    getUserById
+    handleDeleteUser,
+    handleUpdateCreate
   };
 };
+
+export default useAuthAction;

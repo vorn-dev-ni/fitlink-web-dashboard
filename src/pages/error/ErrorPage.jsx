@@ -5,7 +5,7 @@ import { useRouteError } from 'react-router';
 const NotFound = () => {
   const theme = useTheme();
   const error = useRouteError();
-  console.error(error);
+
   return (
     <Box
       sx={{
@@ -30,8 +30,8 @@ const NotFound = () => {
       <Typography variant="h3" gutterBottom color={theme.palette.error.dark}>
         Oops! Something went wrong.
       </Typography>
-      <Typography variant="h6" color={theme.palette.error.dark} gutterBottom>
-        Error is {error?.toString()}
+      <Typography variant="h5" color={theme.palette.error.dark} gutterBottom>
+        Error caught by ----- {error?.toString()} ------
       </Typography>
       <Button
         variant="contained"

@@ -1,22 +1,27 @@
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { Button, Stack, Typography } from '@mui/material';
 import Paper from '@mui/material/Paper';
+import AlertDialog from 'components/AlertDialog';
 import SimpleLoading from 'components/SimpleLoading';
 import AppTable from 'components/tables/AppTable';
 import PopoverDialog from 'components/tables/PopoverDialog';
-import { useUsersCollection } from 'hooks';
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 import guidelines from 'themes/styles';
 import useStyles from './User.style';
-const displayColumns = ['Unique ID', 'Email', 'FullName', 'Provider', 'Role'];
-export default function UserTables() {
+const displayColumns = ['Unique ID', 'Email / Telephone', 'FullName', 'Provider', 'Role'];
+function UserTables({ onDelete, onEdit, users, loading, hightLightText }) {
   const [pageState, setPageState] = useState(true);
-  const { users, loading } = useUsersCollection();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
-  const classes = useStyles();
+  const [showDialog, setShowDialog] = useState(false);
+  const [data, setData] = useState(null);
   const open = Boolean(anchorEl);
-  const handleClick = (event) => {
+  const classes = useStyles();
+
+  const handleClick = (event, data) => {
     setAnchorEl(event.currentTarget);
+    setData(data);
   };
 
   const handleClose = () => {
@@ -25,29 +30,32 @@ export default function UserTables() {
   const getRows = useMemo(() => {
     return users;
   }, [users]);
+  const handlePressTable = useCallback((data) => {
+    const { id } = data;
+    navigate(`${id}/edit`);
+  }, []);
   const getColumns = useMemo(() => {
     if (users?.length && users != undefined) {
       const data = Object.keys(users[0]);
       return data?.map((item, index) => ({
         id: item + '',
         label: displayColumns[index],
-        minWidth: 50
-        // isLink: ['Avatar Image'].includes(displayColumns[index])
+        minWidth: 50,
+        hightLightText: hightLightText
       }));
     }
     return displayColumns?.map((item, index) => ({
       id: item + '',
-      label: index,
+      label: item,
       minWidth: 50
-      // isLink: ['Avatar Image'].includes(displayColumns[index])
     }));
-  }, [users, displayColumns]);
+  }, [users, displayColumns, hightLightText]);
   useEffect(() => {
     let timeOut;
     if (!loading) {
       timeOut = setTimeout(() => {
         setPageState(loading);
-      }, 400);
+      }, 200);
     }
     return () => clearTimeout(timeOut);
   }, [loading]);
@@ -60,7 +68,11 @@ export default function UserTables() {
       <PopoverDialog open={open} anchorEl={anchorEl} handleClose={handleClose}>
         <Stack className={classes.stackContainer}>
           <Button
-            onClick={handleClose}
+            onClick={() => {
+              handleClose();
+              setShowDialog((pre) => !pre);
+              // onDelete(id);
+            }}
             className={classes.button}
             variant="text"
             sx={{
@@ -78,7 +90,10 @@ export default function UserTables() {
               alignItems: 'flex-start',
               justifyContent: 'flex-start'
             }}
-            onClick={handleClose}
+            onClick={() => {
+              handleClose();
+              onEdit(data);
+            }}
             className={classes.button}
             variant="text"
           >
@@ -89,7 +104,26 @@ export default function UserTables() {
           </Button>
         </Stack>
       </PopoverDialog>
-      <AppTable columns={getColumns} rows={getRows} rowsPerPageOptions={[5, 10]} initialRowsPerPage={5} handleClickAction={handleClick} />
+      <AlertDialog
+        onClose={() => setShowDialog((pre) => !pre)}
+        title={'Are you sure?'}
+        onConfirm={() => {
+          setShowDialog((pre) => !pre);
+          console.log('delete on delete', data);
+          onDelete(data);
+        }}
+        message="Please confirm your action to delete this item!!!"
+        open={showDialog}
+      />
+      <AppTable
+        onPressTable={handlePressTable}
+        columns={getColumns}
+        rows={getRows}
+        rowsPerPageOptions={[5, 10]}
+        initialRowsPerPage={5}
+        handleClickAction={handleClick}
+      />
     </Paper>
   );
 }
+export default memo(UserTables);
