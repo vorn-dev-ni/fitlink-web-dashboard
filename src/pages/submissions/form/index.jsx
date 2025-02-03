@@ -3,11 +3,11 @@
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { Box, Button, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import SubmissionCreateForm from './SubmissionCreateForm';
-import { useNavigate } from 'react-router';
 import SimpleLoading from 'components/SimpleLoading';
-import { useEffect, useState } from 'react';
 import { useSubmissionActions } from 'hooks/submissions/useSubmissionAction';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import SubmissionCreateForm from '../components/SubmissionCreateForm';
 export default function SubmissionCreate() {
   // const currUser = auth;
   const { palette } = useTheme();

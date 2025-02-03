@@ -2,7 +2,6 @@ import { UploadOutlined } from '@ant-design/icons';
 import { Box, Container, FormControl, FormControlLabel, Grid, Radio, RadioGroup, Stack, TextField, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'components/MainCard';
-import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 const SubmissionCreateForm = () => {

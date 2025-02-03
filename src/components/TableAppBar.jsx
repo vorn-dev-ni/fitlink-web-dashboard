@@ -3,25 +3,12 @@ import { useTheme } from '@mui/material/styles';
 import { Stack } from '@mui/system';
 
 // project import
-import { EditOutlined, FilterOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Grid, TextField, Typography } from '@mui/material';
+import { EditOutlined, SearchOutlined, SortAscendingOutlined } from '@ant-design/icons';
+import { Button, Grid, TextField } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
-import { useState } from 'react';
-import PopoverDialog from './tables/PopoverDialog';
-const TableAppBar = ({ label, handleNavigate }) => {
+const TableAppBar = ({ label, handleNavigate, onClickSort, handleChangeText }) => {
   const { palette } = useTheme();
-  const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const open = Boolean(anchorEl);
-  const id = open ? 'simple-popover' : undefined;
   return (
     <Grid
       sx={{
@@ -32,9 +19,6 @@ const TableAppBar = ({ label, handleNavigate }) => {
       justifyContent={'center'}
       rowGap={2}
     >
-      <PopoverDialog open={open} anchorEl={anchorEl} handleClose={handleClose}>
-        <Typography sx={{ p: 2 }}>Coming Soon !!!</Typography>
-      </PopoverDialog>
       <Grid item xs={12} md={6} lg={6}>
         <Stack
           direction={'row'}
@@ -48,6 +32,7 @@ const TableAppBar = ({ label, handleNavigate }) => {
           <TextField
             label="Search"
             fullWidth
+            onChange={handleChangeText}
             // id="fullWidth"
             InputProps={{
               startAdornment: (
@@ -58,15 +43,16 @@ const TableAppBar = ({ label, handleNavigate }) => {
             }}
           />
           <Button
-            sx={{ width: 120 }}
             style={{
-              backgroundColor: palette.primary.light
+              color: palette.primary.light,
+              padding: 7
             }}
-            onClick={handleClick}
-            variant="contained"
-            endIcon={<FilterOutlined />}
+            onClick={onClickSort}
+            variant="outlined"
+            color="inherit"
+            endIcon={<SortAscendingOutlined />}
           >
-            Filter
+            Sort
           </Button>
         </Stack>
       </Grid>

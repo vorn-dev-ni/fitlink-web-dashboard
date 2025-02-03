@@ -5,7 +5,7 @@ import Loadable from 'components/Loadable';
 import SimpleLoading from 'components/SimpleLoading';
 import MinimalLayout from 'layout/MinimalLayout';
 import { Navigate } from 'react-router';
-const ErrorPage = Loadable(lazy(() => import('pages/ErrorPage')));
+const ErrorPage = Loadable(lazy(() => import('pages/error/ErrorPage')));
 
 // render - login
 const AuthLogin = Loadable(lazy(() => import('pages/authentication/login')));

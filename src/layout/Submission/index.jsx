@@ -1,8 +1,6 @@
-import SimpleLoading from 'components/SimpleLoading';
-import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-// ==============================|| MINIMAL LAYOUT ||============================== //
+// ==============================|| SUBMISSION LAYOUT ||============================== //
 
 export default function SubmissionLayout() {
   return (

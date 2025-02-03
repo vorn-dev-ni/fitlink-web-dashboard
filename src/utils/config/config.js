@@ -8,8 +8,9 @@ const Environment = {
   MESSAGING_SENDER_ID_DEV: import.meta.env.VITE_REACT_APP_MESSAGING_SENDER_ID_DEV,
   APP_ID_DEV: import.meta.env.VITE_REACT_APP_APP_ID_DEV,
   APP_MEASUREMENT_ID: import.meta.env.VITE_REACT_APP_APP_MEASUREMENT_ID,
+  GOOGLE_MAP_API: import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY,
+  MAP_ID: import.meta.env.VITE_MAP_ID
 };
-
 
 const config = {
   defaultPath: '/dashboard/default',
@@ -20,9 +21,8 @@ const config = {
   mode: 'light',
   presetColor: 'default',
   themeDirection: 'ltr',
-  AppEnv:{...Environment}
+  AppEnv: { ...Environment }
 };
-
 
 export default config;
 export const drawerWidth = 260;
