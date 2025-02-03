@@ -7,13 +7,12 @@ import PopoverDialog from 'components/tables/PopoverDialog';
 import { useSubmissions } from 'hooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import guidelines from 'themes/styles';
-import useStyles from './Submission.style';
+import useStyles from '../Submission.style';
 import { useTheme } from '@mui/material/styles';
 
-const displayColumns = ['Unique ID', 'Email', 'Name', 'Status', 'Certificate', 'Date'];
-export default function SubmitTables() {
+const displayColumns = ['Unique ID', 'Email', 'Name', 'Status', 'Document', 'Date'];
+export default function SubmitTables({ formEvents, loading }) {
   const [pageState, setPageState] = useState(true);
-  const { formEvents, loading } = useSubmissions();
   const [anchorEl, setAnchorEl] = useState(null);
   const classes = useStyles();
   const theme = useTheme();
@@ -26,7 +25,6 @@ export default function SubmitTables() {
     setAnchorEl(null);
   };
   const getColorStatus = useCallback((item) => {
-    console.log('TAG:Color is', item);
     switch (item) {
       case 'pending':
         return 'red';
@@ -52,14 +50,17 @@ export default function SubmitTables() {
         id: item + '',
         label: displayColumns[index],
         minWidth: 100,
-        isLink: ['WebSite', 'Email', 'Document'].includes(displayColumns[index])
+
+        isLink: ['WebSite', 'Document'].includes(displayColumns[index]),
+        document: ['Document'].includes(displayColumns[index])
       }));
     }
     return displayColumns?.map((item, index) => ({
       id: item + '',
       label: index === 0 ? 'Unique ID' : item,
       minWidth: 100,
-      isLink: ['WebSite', 'Email', 'Document'].includes(displayColumns[index])
+      isLink: ['WebSite', 'Document'].includes(displayColumns[index]),
+      document: ['Document'].includes(displayColumns[index])
     }));
   }, [formEvents, displayColumns]);
   useEffect(() => {

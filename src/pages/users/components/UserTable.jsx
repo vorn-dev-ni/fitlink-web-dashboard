@@ -8,8 +8,8 @@ import PopoverDialog from 'components/tables/PopoverDialog';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import guidelines from 'themes/styles';
-import useStyles from './User.style';
-const displayColumns = ['Unique ID', 'Email / Telephone', 'FullName', 'Provider', 'Role'];
+import useStyles from '../User.style';
+const displayColumns = ['Unique ID', 'Email / Telephone', 'Full Name', 'Provider', 'Role'];
 function UserTables({ onDelete, onEdit, users, loading, hightLightText }) {
   const [pageState, setPageState] = useState(true);
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ function UserTables({ onDelete, onEdit, users, loading, hightLightText }) {
   const [data, setData] = useState(null);
   const open = Boolean(anchorEl);
   const classes = useStyles();
-
   const handleClick = (event, data) => {
     setAnchorEl(event.currentTarget);
     setData(data);

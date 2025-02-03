@@ -4,25 +4,28 @@ import { lazy, Suspense } from 'react';
 import Loadable from 'components/Loadable';
 import SimpleLoading from 'components/SimpleLoading';
 import Dashboard from 'layout/Dashboard';
-import SubmissionLayout from 'layout/Submission';
+// import SubmissionLayout from 'layout/Submission';
 import { Navigate } from 'react-router';
 import { ProtectedRoutes } from './ProtectedRoute';
-const Color = Loadable(lazy(() => import('pages/component-overview/color')));
-const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
-const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
+
+const Color = Loadable(lazy(() => import('pages/components/color')));
+const Typography = Loadable(lazy(() => import('pages/components/typography')));
+const Shadow = Loadable(lazy(() => import('pages/components/shadows')));
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
 const ErrorPage = Loadable(lazy(() => import('pages/error/ErrorPage')));
 
 // render - sample page
+const EventCreateEdit = Loadable(lazy(() => import('pages/event/form')));
+const UserPage = Loadable(lazy(() => import('pages/users')));
+const EventPage = Loadable(lazy(() => import('pages/event')));
+const SubmitPage = Loadable(lazy(() => import('pages/submissions')));
+const UserCreateEdit = Loadable(lazy(() => import('pages/users/form')));
 
-const UserPage = Loadable(lazy(() => import('pages/users/UserPage')));
-const EventPage = Loadable(lazy(() => import('pages/event/EventPage')));
-const SubmitPage = Loadable(lazy(() => import('pages/submissions/SubmitPage')));
-const UserCreateEdit = Loadable(lazy(() => import('pages/users/id/UserCreateEdit')));
+const SubmissionCreatePage = Loadable(lazy(() => import('pages/submissions/form/index')));
 
-const SubmissionCreatePage = Loadable(lazy(() => import('pages/submissions/SubmissionCreate')));
-
-const SubmissionEditViewPage = Loadable(lazy(() => import('pages/submissions/SubmissionEditView')));
+//ROot
+const SubmissionLayout = Loadable(lazy(() => import('layout/Submission')));
+const EventLayout = Loadable(lazy(() => import('layout/Event')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -71,18 +74,32 @@ const MainRoutes = {
           element: <UserPage />
         },
         {
-          path: ':id/edit',
+          path: 'create',
           element: <UserCreateEdit />
         },
         {
-          path: 'create',
+          path: ':id/edit',
           element: <UserCreateEdit />
         }
       ]
     },
     {
       path: 'events',
-      element: <EventPage />
+      element: <EventLayout />,
+      children: [
+        {
+          path: '',
+          element: <EventPage />
+        },
+        {
+          path: 'create',
+          element: <EventCreateEdit />
+        },
+        {
+          path: ':id/edit',
+          element: <EventCreateEdit />
+        }
+      ]
     },
     {
       path: 'submissions',
@@ -98,7 +115,7 @@ const MainRoutes = {
         },
         {
           path: 'edit',
-          element: <SubmissionEditViewPage />
+          element: <SubmissionCreatePage />
         },
         {
           path: '*',

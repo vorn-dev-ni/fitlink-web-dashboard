@@ -83,10 +83,9 @@ const useAuthAction = () => {
     setLoading(true);
     try {
       const createUser = httpsCallable(functions, 'createEditUser');
-
       delete params.firstName;
       delete params.lastName;
-      // console.log('params is ', params);
+      console.log('params is ', params);
       const result = await createUser({
         ...params,
         photoURL: params?.avatar ?? '',
@@ -100,8 +99,6 @@ const useAuthAction = () => {
         const file = getFilePathFromUrl(params?.avatar);
         await deleteFile(file);
       }
-
-      // const errorCode = error.code;
       const errorMessage = error.message;
       setError(errorMessage);
       throw error;

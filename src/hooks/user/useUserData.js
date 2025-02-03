@@ -39,7 +39,7 @@ const useUserData = (sortBy) => {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.data() != null) {
-        return docSnap.data();
+        return { uid: docSnap.id, ...docSnap.data() };
       } else {
         console.log('No such document!');
         return null;

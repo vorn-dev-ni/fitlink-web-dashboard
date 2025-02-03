@@ -11,23 +11,8 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions/v1';
 import sharp from 'sharp';
 admin.initializeApp();
-
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
-
-export const deleteImage = functions.https.onCall(async (data, context) => {
-  const { uid, fileName, rootDir } = data;
-
-  try {
-    const bucket = admin.storage().bucket();
-    const filePath = `${rootDir}/${uid}/${fileName}`;
-    const file = bucket.file(filePath);
-    await file.delete();
-    return { message: 'Image deleted successfully' };
-  } catch (error) {
-    throw new functions.https.HttpsError('not-found', 'Image not found or could not be deleted', error);
-  }
-});
 
 export const compressImage = functions.storage.object().onFinalize(async (object) => {
   const bucket = admin.storage().bucket(object.bucket);
@@ -75,11 +60,6 @@ export const deleteUserOnFirestoreDelete = functions.firestore
     try {
       await admin.auth().deleteUser(userId);
       console.log(`Successfully deleted user with UID: ${userId}`);
-
-      // Optionally, delete the user's associated files from Firebase Storage if necessary
-      // const fileRef = admin.storage().bucket().file(`avatars/${userId}.jpg`);
-      // await fileRef.delete();
-      // console.log(`Successfully deleted file for user with UID: ${userId}`);
       return null;
     } catch (error) {
       console.error('Error deleting user:', error);

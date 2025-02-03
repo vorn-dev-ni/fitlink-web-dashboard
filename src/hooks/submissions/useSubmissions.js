@@ -21,7 +21,7 @@ export const useSubmissions = () => {
             email: doc.data()?.email,
             contact_name: doc.data()?.contact_name,
             status: doc.data()?.status,
-            trainer_certification: true ? 'Yes Included' : 'Not Included',
+            proof_documents: doc.data()?.proof_documents,
             submission_date: formatDateApp(new Date(timestamp.seconds * 1000))
           };
         });

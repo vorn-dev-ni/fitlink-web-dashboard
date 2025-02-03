@@ -57,11 +57,9 @@ const UserForm = () => {
   });
   const handleSubmitUser = async (values, actions) => {
     try {
-      // console.log(trimWhiteSpace(values.firstName));
       const firstName = trimWhiteSpace(values.firstName);
       const lastName = trimWhiteSpace(values.lastName);
       const trimEmail = trimWhiteSpace(values.email);
-
       let downloadUrl = '';
       actions.setSubmitting(true);
       if (previewImage.file != null) {
@@ -77,8 +75,8 @@ const UserForm = () => {
         fullName: firstName + ' ' + lastName,
         avatar: downloadUrl || previewImage.image
       });
+
       if (!params.id) {
-        console.log('Successfuly >> Line: 77');
         actions.resetForm();
         setPreviewImage({
           file: null,
@@ -86,7 +84,6 @@ const UserForm = () => {
         });
         //Only reset if user is creating only
       }
-      console.log('Successfuly >> Line: 85');
       setMutateState({
         showSnackBar: true,
         type: 'success',

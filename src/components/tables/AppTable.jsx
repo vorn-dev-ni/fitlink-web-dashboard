@@ -1,5 +1,5 @@
-import { MoreOutlined } from '@ant-design/icons';
-import { IconButton, Typography, useTheme } from '@mui/material';
+import { FileOutlined, MoreOutlined } from '@ant-design/icons';
+import { Avatar, IconButton, ListItemButton, ListItemIcon, ListItemText, useTheme } from '@mui/material';
 import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -44,7 +44,62 @@ const AppTable = ({
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+  const renderColumnContent = (column, row) => {
+    if (!column || !row) return null;
+    if (column.document) {
+      return row[column.id]?.length ? (
+        row[column.id]?.map((item, index) => (
+          <ListItemButton download={item} sx={{ gap: 2 }} onClick={(event) => window.open(item, '_blank')}>
+            <ListItemIcon>
+              <FileOutlined style={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary={item} />
+          </ListItemButton>
+        ))
+      ) : (
+        <ListItemButton sx={{ gap: 2 }}>
+          <ListItemIcon>
+            <FileOutlined style={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary={'No Document or file'} />
+        </ListItemButton>
+      );
+    }
+    if (column.isLink) {
+      return (
+        <Link
+          component="div"
+          variant="body2"
+          onClick={() => {
+            window.location.href = row[column.id];
+          }}
+          sx={{
+            '&:hover': {
+              cursor: 'pointer'
+            }
+          }}
+        >
+          {row[column.id] || 'N/A'}
+        </Link>
+      );
+    }
 
+    if (column.isAvatar) {
+      return (
+        <Avatar
+          sx={{
+            width: 100,
+            height: 100,
+            objectFit: 'contain'
+          }}
+          src={row[column.id]}
+          sizes="md"
+        />
+      );
+    }
+
+    return <HighLightText text={row[column.id]} highlight={column.hightLightText} />;
+  };
   return (
     <Paper>
       <TableContainer>
@@ -103,7 +158,7 @@ const AppTable = ({
                     {columns.map((column, index) => (
                       <Fragment key={index}>
                         <TableCell
-                          onClick={() => onPressTable(row)}
+                          // onClick={() => onPressTable(row)}
                           key={index + ''}
                           align={column.align || 'left'}
                           sx={{
@@ -111,20 +166,7 @@ const AppTable = ({
                             color: column?.id == 'status' && row?.color
                           }}
                         >
-                          {column.isLink ? (
-                            <Link
-                              component="button"
-                              textAlign={'left'}
-                              variant="body2"
-                              onClick={() => {
-                                if (row[column?.id]) window.open(row[column?.id], '_blank');
-                              }}
-                            >
-                              {row[column?.id] || 'N/A'}
-                            </Link>
-                          ) : (
-                            <HighLightText text={row[column?.id]} highlight={column.hightLightText} />
-                          )}
+                          {renderColumnContent(column, row)}
                         </TableCell>
                       </Fragment>
                     ))}

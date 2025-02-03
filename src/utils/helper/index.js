@@ -24,3 +24,32 @@ export const getFilePathFromUrl = (downloadUrl) => {
 export const trimWhiteSpace = (value) => {
   return value.replace(/\s+/g, '');
 };
+
+export const formatNumberToPrice = (region, currency, number) => {
+  return Intl.NumberFormat(region, { style: 'currency', currency: currency }).format(number);
+};
+
+export const getUserCurrentLocation = (success) => {
+  console.log('>>Invoke get current location');
+  if (navigator.geolocation) {
+    return navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        success(latitude, longitude);
+      },
+      (error) => {
+        console.log('Unable to retrieve your location');
+      }
+    );
+  } else {
+    console.log('Geolocation not supported');
+  }
+};
+
+export const formattedTime = (value) => {
+  return dayjs(value).format('YYYY-MM-DD HH:mm:ss');
+};
+export const formatToDate = (value, formatter) => {
+  return dayjs(value).format(formatter || 'YYYY-MM-DD');
+};

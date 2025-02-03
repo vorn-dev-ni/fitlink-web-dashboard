@@ -7,7 +7,7 @@ import SimpleLoading from 'components/SimpleLoading';
 import { useSubmissionActions } from 'hooks/submissions/useSubmissionAction';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import SubmissionCreateForm from './SubmissionCreateForm';
+import SubmissionCreateForm from '../components/SubmissionCreateForm';
 export default function SubmissionCreate() {
   // const currUser = auth;
   const { palette } = useTheme();

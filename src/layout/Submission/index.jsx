@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 
-// ==============================|| MINIMAL LAYOUT ||============================== //
+// ==============================|| SUBMISSION LAYOUT ||============================== //
 
 export default function SubmissionLayout() {
   return (

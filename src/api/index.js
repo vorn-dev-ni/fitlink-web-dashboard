@@ -1,15 +1,13 @@
-import axios, { isCancel, AxiosError } from 'axios';
+import axios from 'axios';
 import useSWR from 'swr';
-import { AppException } from 'utils/exception';
 
-const axiosInstances = (baseURL = '', timeout = 1500 * 100, signal = new AbortController().signal) => {
+const axiosInstances = (baseURL, timeout = 1500 * 100, signal = new AbortController().signal, method) => {
+  console.log('>>Request uri is ', baseURL, 'Time out', timeout, 'Method', method);
   const instance = axios.create({
     baseURL: baseURL,
     timeout: timeout,
     method: method,
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: null,
     signal: signal,
     validateStatus: function (status) {
       return status >= 200 && status < 400;
@@ -20,9 +18,7 @@ const axiosInstances = (baseURL = '', timeout = 1500 * 100, signal = new AbortCo
 
   instance.interceptors.request.use(
     (config) => {
-      // Modify request (e.g., adding an auth token to headers)
-      console.log('Request Interceptor:', config);
-      // Example: Add an Authorization token to headers if available
+      // console.log('Request Interceptor:', config);
       const token = localStorage.getItem('authToken'); // Assuming token is stored in localStorage
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
@@ -36,78 +32,114 @@ const axiosInstances = (baseURL = '', timeout = 1500 * 100, signal = new AbortCo
     }
   );
 
-  // Response Interceptor
   instance.interceptors.response.use(
     (response) => {
-      // Modify response before passing to .then()
-      console.log('Response Interceptor:', response);
+      // console.log('Response Interceptor:', response);
       return response;
     },
     (error) => {
       console.error('Response Error:', error);
-      if (error.response && error.response.status === 401) {
-        console.log('Session expired. Logging out...');
-        localStorage.removeItem('authToken');
-      }
-      return Promise.reject(error);
+      // if (error.response && error.response.status === 401) {
+      //   console.log('Session expired. Logging out...');
+      //   localStorage.removeItem('authToken');
+      // }
+      const errorMessage = handleError(error);
+      return Promise.reject(errorMessage);
     }
   );
 
   return instance;
 };
+export const useApi = (timeout, signal) => {
+  const requesterApi = async (baseURL, data, method) => {
+    try {
+      console.log('>>Params data is', data, 'Method', method);
+      const axiosFetcher = axiosInstances(baseURL, timeout, signal, method);
+      const response = await axiosFetcher.request({
+        method,
+        data: data ?? {}
+      });
+      if (response.status < 300) {
+        return response.data;
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+  //Handle GET
+  const fetcherApi = async (baseURL) => {
+    try {
+      const axiosFetcher = axiosInstances(baseURL, timeout, signal, 'GET');
+      const response = await axiosFetcher.request({
+        method: 'GET'
+      });
+      if (response.status == 200) {
+        return response.data;
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const useFetchData = (url, config) => {
+    const { data, error, isLoading, mutate } = useSWR(url, fetcherApi, {
+      // revalidateOnFocus: true, // Revalidate data when window gains focus
+      // revalidateOnReconnect: true, // Revalidate data when network is reconnected
+      refreshInterval: 0, // Disable automatic interval refetching
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
+      ...config
+    });
+    if (data)
+      return {
+        data: data.results,
+        success: true,
+        error,
+        isLoading
+      };
+
+    return {
+      data: [],
+      success: false,
+      error,
+      isLoading
+    };
+  };
+  const requestApiData = async (url, data, method) => {
+    const response = await requesterApi(url, data, method);
+    if (response?.data) {
+      return response?.data;
+    }
+  };
+
+  return {
+    requestApiData,
+    useFetchData
+  };
+};
 
 //Handle delete, post, update
-export const requesterApi = async (baseURL, data = null, method, timeout, signal) => {
-  try {
-    const axiosFetcher = axiosInstances(baseURL, timeout, signal);
-    const response = await axiosFetcher.request({
-      method,
-      data: data
-    });
-    const { data, error } = useSWR('/api/data', response);
-    if (response.status >= 300) {
-      return response.data;
-    }
-    return {
-      data,
-      success,
-      error
-    };
-  } catch (error) {
-    handleError(error);
-  }
-};
-//Handle GET
-export const fetcherApi = async (baseURL, method, timeout, signal) => {
-  try {
-    const axiosFetcher = axiosInstances(baseURL, timeout, signal);
-    const response = await axiosFetcher.request({
-      method
-    });
-    if (response.status == 200) {
-      return response.data;
-    }
-  } catch (error) {
-    handleError(error);
-  }
-};
 
 const handleError = (error) => {
+  //Customize error message
   const response = error?.response;
   const request = error?.request;
   const config = error?.config;
 
   if (response) {
-    console.log(response.data);
+    // console.log(response?.data);
     console.log(error.response.status);
     console.log(error.response.headers);
   } else if (request) {
     console.log(request);
   } else {
-    console.log('Error', error.message);
+    console.log('Error', error);
   }
-  if (response.data) {
-    throw AppException(response.data);
+  if (response?.data) {
+    return response?.data;
+
+    // throw AppException(response.data);
   }
-  throw AppException(error + '');
+  return error?.toString();
+  // throw AppException(error + '');
 };

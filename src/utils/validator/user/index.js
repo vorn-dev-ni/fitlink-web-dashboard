@@ -28,8 +28,14 @@ export const userValidationSchema = Yup.object().shape({
       return true;
     }),
   password: Yup.string().min(6, 'Password is too short').max(12, 'Maximum password is 12 characters').required('Password is required'),
-  firstName: Yup.string().min(3).max(50).required('First name is required'),
-  lastName: Yup.string().min(3).max(50).required('Last name is required'),
+  firstName: Yup.string()
+    .min(3, 'First name must be at least 3 characters')
+    .max(50, 'First name must be at less then 50 characters')
+    .required('First name is required'),
+  lastName: Yup.string()
+    .min(3, 'Last name must be at least 3 characters')
+    .max(50, 'Last name must be at less then 50 characters')
+    .required('Last name is required'),
   role: Yup.string().required('User role is required'),
   //   phone: Yup.string().matches(phoneRegex, 'Please enter a valid phone number'),
   bio: Yup.string().min(6, 'Minimum bio is 6 characters').max(100, 'Maximum bio is 100 characters').nullable()

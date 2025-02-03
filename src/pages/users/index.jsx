@@ -6,17 +6,17 @@ import { useTheme } from '@mui/material/styles';
 import AppSnackBar from 'components/SnackBar';
 import TableAppBar from 'components/TableAppBar';
 import { useAuthAction, useUserData } from 'hooks';
-import AppPageHeader from 'pages/component-overview/AppPageHeader';
-import { useCallback, useEffect, useState } from 'react';
+import AppPageHeader from 'pages/components/AppPageHeader';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { resetScroll } from 'utils/helper';
-import UserTables from './UserTable';
+import UserTables from './components/UserTable';
 
 export default function UserPage() {
   const navigation = useNavigate();
   const { palette } = useTheme();
-  const { error, handleDeleteUser } = useAuthAction();
-  const [open, setOpen] = useState(false);
+  const { error: userError, handleDeleteUser } = useAuthAction();
+  const [showError, setShowError] = useState(false);
   const [mutateState, setMutateState] = useState({ sortBy: 'desc' });
   const { users, loading } = useUserData(mutateState.sortBy);
   const [hightLightText, setHighLightText] = useState('');
@@ -25,42 +25,48 @@ export default function UserPage() {
     setMutateState((pre) => ({ ...pre, sortBy: pre.sortBy == 'desc' ? 'asc' : 'desc' }));
   }, []);
 
-  const onChangeText = useCallback(
-    (e) => {
-      const text = e.target.value;
-      setHighLightText(text);
-      const result = users.slice().filter((user) => user.fullName?.toLowerCase().includes(text.toLowerCase().trim()));
-      setLocalStateUser(result);
-    },
-    [users]
-  );
-  const onDeleteUser = useCallback(async (data) => {
+  const onClickDelete = useCallback(async (data) => {
     await handleDeleteUser(data.id, data.avatar);
     setOpen(true);
   }, []);
+
+  const onClickEdit = useCallback((data) => {
+    const { id } = data;
+    navigation(`${id}/edit`);
+  }, []);
+
+  const mutateUserState = useMemo(() => {
+    return users.filter((item) => item?.fullName?.toLowerCase()?.includes(hightLightText?.toLowerCase()));
+  }, [users, hightLightText]);
+  const onChangeText = useCallback(
+    (e) => {
+      const text = e.target.value;
+      setHighLightText(text?.trim());
+    },
+    [users]
+  );
+  useEffect(() => {
+    setLocalStateUser(mutateUserState);
+  }, [mutateUserState]);
+
   useEffect(() => {
     resetScroll();
   }, []);
-  useEffect(() => {
-    if (users) {
-      setLocalStateUser(users);
-    }
-  }, [users]);
 
   useEffect(() => {
-    if (error) {
+    if (userError) {
       setOpen(true);
     }
-  }, [error]);
+  }, [userError]);
 
   return (
     <Box>
       <AppSnackBar
-        title={error ?? 'Successfully deleted'}
-        state={error ? 'failed' : 'success'}
-        open={open}
+        title={userError ?? 'Successfully deleted'}
+        state={userError ? 'failed' : 'success'}
+        open={showError}
         handleClose={() => {
-          setOpen(false);
+          setShowError(false);
         }}
       />
       <AppPageHeader title={'All Users'}>
@@ -72,16 +78,7 @@ export default function UserPage() {
         />
       </AppPageHeader>
       <TableAppBar handleChangeText={onChangeText} onClickSort={handleSort} label={'Users'} handleNavigate={() => navigation('create')} />
-      <UserTables
-        users={localStateUser}
-        loading={loading}
-        hightLightText={hightLightText}
-        onDelete={onDeleteUser}
-        onEdit={(data) => {
-          const { id } = data;
-          navigation(`${id}/edit`);
-        }}
-      />
+      <UserTables users={localStateUser} loading={loading} hightLightText={hightLightText} onDelete={onClickDelete} onEdit={onClickEdit} />
     </Box>
   );
 }

@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router';
 import { resetScroll } from 'utils/helper';
 import { isEmail, userInitialValues } from 'utils/validator/user';
-import UserForm from './UserForm';
+import UserForm from '../components/UserForm';
 export default function UserCreateEdit() {
   const setInitState = useSetAtom(userAtomFormValues);
   const { getUserById } = useUserData();
