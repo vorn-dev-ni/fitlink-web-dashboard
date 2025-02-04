@@ -54,7 +54,7 @@ const MapPicker = ({ type, initValue, onChangeAddress }) => {
     <APIProvider apiKey={config.AppEnv.GOOGLE_MAP_API}>
       <Box>
         <Stack sx={{ paddingBottom: 2 }}>
-          <Typography>{googleMapResult.Loading ? 'Loading address...' : googleMapResult.data}</Typography>
+          <Typography>{googleMapResult.Loading ? 'Loading address...' : googleMapResult.data ?? 'Loading...'}</Typography>
         </Stack>
 
         <Map

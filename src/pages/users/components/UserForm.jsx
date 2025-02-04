@@ -16,7 +16,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate, useParams } from 'react-router';
 import { getFilePathFromUrl, trimWhiteSpace } from 'utils/helper';
-import { userValidationSchema } from 'utils/validator/user';
+import { userInitialValues, userValidationSchema } from 'utils/validator/user';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
 const defaultMutateState = {
@@ -77,7 +77,9 @@ const UserForm = () => {
       });
 
       if (!params.id) {
+        console.log('true resetting now');
         actions.resetForm();
+        setuserInitState(userInitialValues);
         setPreviewImage({
           file: null,
           image: ''
@@ -89,14 +91,7 @@ const UserForm = () => {
         type: 'success',
         title: 'Saved changes has been completed!!!'
       });
-      setuserInitState({
-        ...values,
-        firstName: firstName,
-        lastName: lastName,
-        email: trimEmail,
-        fullName: firstName + ' ' + lastName,
-        avatar: downloadUrl || values.avatar
-      });
+
       actions.setSubmitting(false);
     } catch (error) {
       console.error(error);
@@ -355,7 +350,7 @@ const UserForm = () => {
                 </Grid>
 
                 <Grid item xs={6}>
-                  <Typography variant="h5" py={1.2}>
+                  <Typography variant="h5" py={1.5}>
                     User Role
                   </Typography>
                   <Field name="role">

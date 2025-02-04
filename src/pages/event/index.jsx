@@ -34,8 +34,8 @@ export default function EventPage() {
     [events]
   );
   const onClickDelete = useCallback(async (data) => {
+    setShowError(true);
     await handleDeleteEvent(data.id, data.avatar);
-    setOpen(true);
   }, []);
 
   const onClickEdit = useCallback((data) => {
