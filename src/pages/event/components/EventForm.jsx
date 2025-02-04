@@ -280,7 +280,7 @@ const EventForm = () => {
                           meta
                         }) => (
                           <Box>
-                            <TextField label="Enter user first name" fullWidth {...field} />
+                            <TextField label="Enter Event title" fullWidth {...field} />
 
                             {meta.touched && meta.error && <Typography color={'red'}>{meta.error} *</Typography>}
                           </Box>
@@ -300,7 +300,7 @@ const EventForm = () => {
                           meta
                         }) => (
                           <Box>
-                            <TextField label="Enter user last name" fullWidth {...field} />
+                            <TextField label="Enter Establishment" fullWidth {...field} />
                             {meta.touched && meta.error && <Typography color={'red'}>{meta.error} *</Typography>}
                           </Box>
                         )}
