@@ -27,6 +27,7 @@ const EventForm = () => {
   const { error: eventError, handleCreateEvent, handleUpdateEvent, loading } = useEventAction();
   const { palette } = useTheme();
   const params = useParams();
+  const [mapKey, setMapKey] = useState(0);
   const navigate = useNavigate();
   const [previewImage, setPreviewImage] = useState({
     file: null,
@@ -58,6 +59,7 @@ const EventForm = () => {
       //Only reset if user is creating only
       await handleCreateEvent(args);
       actions.resetForm();
+      setMapKey((pre) => pre + 1);
       setPreviewImage({
         file: null,
         image: ''
@@ -473,6 +475,7 @@ const EventForm = () => {
                         }) => (
                           <Box>
                             <MapPicker
+                              key={mapKey}
                               type={params.id ? 'update' : 'default'}
                               initValue={{
                                 lat: values.lat,

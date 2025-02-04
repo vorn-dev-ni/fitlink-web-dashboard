@@ -26,8 +26,8 @@ export default function UserPage() {
   }, []);
 
   const onClickDelete = useCallback(async (data) => {
+    setShowError(true);
     await handleDeleteUser(data.id, data.avatar);
-    setOpen(true);
   }, []);
 
   const onClickEdit = useCallback((data) => {
@@ -55,7 +55,7 @@ export default function UserPage() {
 
   useEffect(() => {
     if (userError) {
-      setOpen(true);
+      setShowError(true);
     }
   }, [userError]);
 
