@@ -16,7 +16,7 @@ const ErrorPage = Loadable(lazy(() => import('pages/error/ErrorPage')));
 
 // render - sample page
 const EventCreateEdit = Loadable(lazy(() => import('pages/event/form')));
-const UserPage = Loadable(lazy(() => import('pages/users')));
+const UserPage = Loadable(lazy(() => import('pages/users/index')));
 const EventPage = Loadable(lazy(() => import('pages/event')));
 const SubmitPage = Loadable(lazy(() => import('pages/submissions')));
 const UserCreateEdit = Loadable(lazy(() => import('pages/users/form')));
@@ -68,6 +68,7 @@ const MainRoutes = {
     },
     {
       path: 'users',
+      element: <EventLayout />,
       children: [
         {
           path: '',
@@ -116,10 +117,6 @@ const MainRoutes = {
         {
           path: 'edit',
           element: <SubmissionCreatePage />
-        },
-        {
-          path: '*',
-          element: <Navigate to={'/404'} />
         }
       ]
     },

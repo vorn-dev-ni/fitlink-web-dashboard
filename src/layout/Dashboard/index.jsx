@@ -39,9 +39,7 @@ export default function DashboardLayout() {
   }, []);
 
   if (menuMasterLoading) return <Loader />;
-  if (navigation.state == 'loading') {
-    return <SimpleLoading />;
-  }
+
   return (
     <Box sx={{ display: 'flex', width: '100%' }}>
       <Header />

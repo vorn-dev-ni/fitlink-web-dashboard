@@ -43,6 +43,7 @@ const UserForm = () => {
       setPreviewImage({ file: acceptedFiles, image: imageUrl });
     }
   };
+
   const handleClickShowPassword = useCallback(() => {
     setShowPassword((pre) => !pre);
   }, []);

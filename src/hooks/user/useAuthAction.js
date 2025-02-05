@@ -82,10 +82,11 @@ const useAuthAction = () => {
   const handleUpdateCreate = async (id, params) => {
     setLoading(true);
     try {
+      console.log('params is ', params);
       const createUser = httpsCallable(functions, 'createEditUser');
       delete params.firstName;
       delete params.lastName;
-      console.log('params is ', params);
+
       const result = await createUser({
         ...params,
         photoURL: params?.avatar ?? '',
