@@ -30,7 +30,7 @@ const features = {
   type: 'group',
   children: [
     {
-      id: 'events',
+      id: 'event',
       title: 'Events',
       type: 'item',
       url: '/events',

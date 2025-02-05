@@ -5,18 +5,21 @@ import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import AppSnackBar from 'components/SnackBar';
 import TableAppBar from 'components/TableAppBar';
-import { useAuthAction, useUserData } from 'hooks';
+import { useStorage, useUserData } from 'hooks';
 import AppPageHeader from 'pages/components/AppPageHeader';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { resetScroll } from 'utils/helper';
+import { getFilePathFromUrl, resetScroll } from 'utils/helper';
+import { actionDeleteUser } from './action';
 import UserTables from './components/UserTable';
 
 export default function UserPage() {
   const navigation = useNavigate();
   const { palette } = useTheme();
-  const { error: userError, handleDeleteUser } = useAuthAction();
   const [showError, setShowError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const { deleteFile } = useStorage();
+
   const [mutateState, setMutateState] = useState({ sortBy: 'desc' });
   const { users, loading } = useUserData(mutateState.sortBy);
   const [hightLightText, setHighLightText] = useState('');
@@ -27,7 +30,22 @@ export default function UserPage() {
 
   const onClickDelete = useCallback(async (data) => {
     setShowError(true);
-    await handleDeleteUser(data.id, data.avatar);
+    try {
+      await actionDeleteUser(data.id, data.avatar);
+      if (avatar) {
+        const file = getFilePathFromUrl(avatar);
+        await deleteFile(file);
+        console.log('successfully delete file !!!');
+      }
+
+      console.log('user successfully deleted !!!');
+    } catch (error) {
+      const errorMessage = error.message;
+      setShowError(true);
+      setErrorMsg(errorMessage);
+      throw error;
+    } finally {
+    }
   }, []);
 
   const onClickEdit = useCallback((data) => {
@@ -54,16 +72,16 @@ export default function UserPage() {
   }, []);
 
   useEffect(() => {
-    if (userError) {
-      setShowError(true);
-    }
-  }, [userError]);
-
+    console.log('User page mounted');
+    return () => {
+      console.log('User page unmounted');
+    };
+  }, []);
   return (
     <Box>
       <AppSnackBar
-        title={userError ?? 'Successfully deleted'}
-        state={userError ? 'failed' : 'success'}
+        title={errorMsg ?? 'Successfully deleted'}
+        state={errorMsg ? 'failed' : 'success'}
         open={showError}
         handleClose={() => {
           setShowError(false);

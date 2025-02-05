@@ -1,6 +1,7 @@
 import { Alert, Typography } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import { useTheme } from '@mui/material/styles';
+import { memo } from 'react';
 
 const AppSnackBar = ({ title, handleClose, open, duration = 6000, state = 'failed' }) => {
   const theme = useTheme();
@@ -47,4 +48,4 @@ const AppSnackBar = ({ title, handleClose, open, duration = 6000, state = 'faile
   );
 };
 
-export default AppSnackBar;
+export default memo(AppSnackBar);

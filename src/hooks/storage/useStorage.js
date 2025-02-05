@@ -7,7 +7,7 @@ const useStorage = () => {
   const [error, setError] = useState(null);
 
   const deleteFile = async (file) => {
-    const imageRef = ref(storage, file);
+    const imageRef = ref(storage, encodeURIComponent(file));
     await deleteObject(imageRef);
     console.log('File has been delete ');
   };
@@ -15,7 +15,8 @@ const useStorage = () => {
     try {
       const pathRef = `${rootDir}/${Date.now()}-${file.name}`;
       const fileRef = ref(storage, pathRef);
-      await uploadBytes(fileRef, file);
+      await uploadBytes(fileRef, encodeURIComponent(file));
+
       const downloadUrl = await getDownloadURL(fileRef);
       if (downloadUrl) {
         console.log('File uploaded successfully! URL:', downloadUrl);

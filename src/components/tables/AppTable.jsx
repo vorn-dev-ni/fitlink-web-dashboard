@@ -49,7 +49,7 @@ const AppTable = ({
     if (column.document) {
       return row[column.id]?.length ? (
         row[column.id]?.map((item, index) => (
-          <ListItemButton download={item} sx={{ gap: 2 }} onClick={(event) => window.open(item, '_blank')}>
+          <ListItemButton key={index + ''} download={item} sx={{ gap: 2 }} onClick={(event) => window.open(item, '_blank')}>
             <ListItemIcon>
               <FileOutlined style={{ fontSize: 20 }} />
             </ListItemIcon>
@@ -132,7 +132,6 @@ const AppTable = ({
                 );
               })}
               <TableCell
-                key={'action'}
                 sx={{
                   backgroundColor: palette.primary.light,
                   color: palette.common.white,
@@ -156,10 +155,10 @@ const AppTable = ({
               ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={rowIndex}>
                     {columns.map((column, index) => (
-                      <Fragment key={index}>
+                      <Fragment key={index + rowIndex}>
                         <TableCell
                           // onClick={() => onPressTable(row)}
-                          key={index + ''}
+
                           align={column.align || 'left'}
                           sx={{
                             textOverflow: 'ellipsis',
@@ -171,6 +170,7 @@ const AppTable = ({
                       </Fragment>
                     ))}
                     <TableCell
+                      key={rowIndex + 'action'}
                       align={'left'}
                       sx={{
                         textOverflow: 'ellipsis',
