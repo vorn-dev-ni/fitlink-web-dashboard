@@ -88,6 +88,7 @@ export const createEditUser = functions.https.onCall(async (data, context) => {
         avatar: photoURL,
         provider: 'web-admin',
         bio: bio,
+        cover_feature: '',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         role
       });
