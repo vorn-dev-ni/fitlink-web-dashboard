@@ -1,42 +1,20 @@
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { Button, Stack, Typography } from '@mui/material';
 import Paper from '@mui/material/Paper';
+import { useTheme } from '@mui/material/styles';
 import SimpleLoading from 'components/SimpleLoading';
 import AppTable from 'components/tables/AppTable';
 import PopoverDialog from 'components/tables/PopoverDialog';
-import { useSubmissions } from 'hooks';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import guidelines from 'themes/styles';
-import useStyles from '../Submission.style';
-import { useTheme } from '@mui/material/styles';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from 'utils/config/firebase';
-import { collectionNames } from 'utils/helper';
+import useStyles from '../Submission.style';
+import { useAtomValue } from 'jotai';
+import { useApi } from 'api';
+import { userAtom } from 'atom';
 
 const displayColumns = ['Unique ID', 'Email', 'Name', 'Status', 'Document', 'Date'];
-
-const updateSubmissionAndUser = async (submissionId, newStatus) => {
-  try {
-    if (!submissionId || typeof submissionId !== 'string') {
-      console.error('Invalid submission ID:', submissionId);
-      return false;
-    }
-
-    const submissionRef = doc(db, 'submissions', submissionId);
-    const submissionSnap = await getDoc(submissionRef);
-
-    if (!submissionSnap.exists()) {
-      console.error('Submission does not exist. ID:', submissionId);
-      return false;
-    }
-
-    await updateDoc(submissionRef, { status: newStatus });
-    return true;
-  } catch (error) {
-    console.error('Error updating submission:', error);
-    return false;
-  }
-};
 
 export default function SubmitTables({ formEvents, loading }) {
   const [pageState, setPageState] = useState(true);
@@ -45,11 +23,76 @@ export default function SubmitTables({ formEvents, loading }) {
   const theme = useTheme();
   const open = Boolean(anchorEl);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
-
+  const [submissionId, setSubmissionId] = useState('');
+  const { requestApiData } = useApi();
+  const user = useAtomValue(userAtom);
+  const [receiverEmail, setReceiverEmail] = useState('');
   const handleClick = (event, rowData) => {
+    // alert('click asdsa', JSON.stringify(rowData.id));
+
+    // console.log('click ', rowData);
     setAnchorEl(event.currentTarget);
     setSelectedSubmission(rowData.id);
+    setSubmissionId(rowData.id);
+    setReceiverEmail(rowData.email);
   };
+  const updateSubmissionAndUser = async (submissionId, newStatus, receiverEmail) => {
+    try {
+      if (!submissionId || typeof submissionId !== 'string') {
+        console.error('Invalid submission ID:', submissionId);
+        return false;
+      }
+
+      const submissionRef = doc(db, 'submissions', submissionId);
+      const submissionSnap = await getDoc(submissionRef);
+
+      if (!submissionSnap.exists()) {
+        console.error('Submission does not exist. ID:', submissionId);
+        return false;
+      }
+
+      await updateDoc(submissionRef, { status: newStatus });
+      // await requestApiData(
+      //   'https://hey-local-be.onrender.com/mail/send-sandbox',
+      //   {
+      //     senderEmail: 'Nightpp19@gmail.com',
+      //     senderPassword: 'wkajsdak2ks',
+      //     companyName: 'FitLink',
+      //     to: receiverEmail,
+      //     subject: 'Welcome',
+      //     title: 'Welcome to our service!',
+      //     text: 'Hello, this is a test message.',
+      //     description: 'We are excited to have you.',
+      //     imageUrl: 'https://example.com/image.png',
+      //     imageWidth: '175px',
+      //     imageHeight: '175px',
+      //     imageFooterUrl: 'https://example.com/footer.png',
+      //     imageFooterWidth: '75px',
+      //     imageFooterHeight: '75px',
+      //     centerTitle: true,
+      //     centerDescription: true,
+      //     centerImage: true,
+      //     centerFooterImage: true,
+      //     centerBody: true
+      //   },
+      //   'POST'
+      // );
+      // const sendNotification = httpsCallable(functions, 'sendNotificationToSpecificUser');
+      // // react firebase query where , where email = receiverEmail and then get the user id ;
+      // //  const { eventType, senderID, receiverID, postID } = data;
+      // await sendNotification({
+      //   eventType: 'submission',
+      //   senderID: user.uid, // Admin id or the current
+      //   receiverID: '', // User id that u want tto send
+      //   postID: submissionId // Event Id
+      // });
+      return true;
+    } catch (error) {
+      console.error('Error updating submission:', error);
+      return false;
+    }
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -59,7 +102,7 @@ export default function SubmitTables({ formEvents, loading }) {
       console.error('No submission selected');
       return;
     }
-    await updateSubmissionAndUser(selectedSubmission, 'approved');
+    await updateSubmissionAndUser(selectedSubmission, 'approved', receiverEmail);
     handleClose();
   };
 
@@ -68,7 +111,7 @@ export default function SubmitTables({ formEvents, loading }) {
       console.error('No submission selected');
       return;
     }
-    await updateSubmissionAndUser(selectedSubmission, 'rejected');
+    await updateSubmissionAndUser(selectedSubmission, 'rejected', receiverEmail);
     handleClose();
   };
 
