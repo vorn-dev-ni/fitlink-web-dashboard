@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 const SubmissionViewPage = () => {
   const location = useLocation();
-  const submission = location.state?.submission; // Get submission data from navigation state
+  const submission = location.state?.submission;
 
   const [formData, setFormData] = useState({
     contact_name: '',
@@ -30,7 +30,7 @@ const SubmissionViewPage = () => {
   };
 
   useEffect(() => {
-    console.log('Submission Data:', submission);
+    console.log('Submission Data:', submission); // Debug
     if (submission) {
       setFormData({
         contact_name: submission.contact_name || '',
@@ -43,6 +43,7 @@ const SubmissionViewPage = () => {
       });
     }
   }, [submission]);
+
   return (
     <Stack spacing={4}>
       <MainCard>
