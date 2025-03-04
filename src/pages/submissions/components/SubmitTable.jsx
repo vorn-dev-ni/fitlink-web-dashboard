@@ -9,27 +9,77 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import guidelines from 'themes/styles';
 import useStyles from '../Submission.style';
 import { useTheme } from '@mui/material/styles';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from 'utils/config/firebase';
+import { collectionNames } from 'utils/helper';
 
 const displayColumns = ['Unique ID', 'Email', 'Name', 'Status', 'Document', 'Date'];
+
+const updateSubmissionAndUser = async (submissionId, newStatus) => {
+  try {
+    if (!submissionId || typeof submissionId !== 'string') {
+      console.error('Invalid submission ID:', submissionId);
+      return false;
+    }
+
+    const submissionRef = doc(db, 'submissions', submissionId);
+    const submissionSnap = await getDoc(submissionRef);
+
+    if (!submissionSnap.exists()) {
+      console.error('Submission does not exist. ID:', submissionId);
+      return false;
+    }
+
+    await updateDoc(submissionRef, { status: newStatus });
+    return true;
+  } catch (error) {
+    console.error('Error updating submission:', error);
+    return false;
+  }
+};
+
 export default function SubmitTables({ formEvents, loading }) {
   const [pageState, setPageState] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const classes = useStyles();
   const theme = useTheme();
   const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
+  const handleClick = (event, rowData) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedSubmission(rowData.id);
+  };
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleApprove = async () => {
+    if (!selectedSubmission) {
+      console.error('No submission selected');
+      return;
+    }
+    await updateSubmissionAndUser(selectedSubmission, 'approved');
+    handleClose();
+  };
+
+  const handleReject = async () => {
+    if (!selectedSubmission) {
+      console.error('No submission selected');
+      return;
+    }
+    await updateSubmissionAndUser(selectedSubmission, 'rejected');
+    handleClose();
+  };
+
   const getColorStatus = useCallback((item) => {
     switch (item) {
       case 'pending':
-        return 'red';
-      case 'completed':
+        return 'gray';
+      case 'approved':
         return 'green';
+      case 'rejected':
+        return 'red';
       default:
         return theme.palette.common.black;
     }
@@ -44,25 +94,27 @@ export default function SubmitTables({ formEvents, loading }) {
   }, [formEvents]);
 
   const getColumns = useMemo(() => {
-    if (formEvents?.length && formEvents != undefined && displayColumns.length) {
-      const data = Object.keys(formEvents[0]);
-      return data?.map((item, index) => ({
-        id: item + '',
-        label: displayColumns[index],
-        minWidth: 100,
+    if (formEvents?.length > 0) {
+      const dataKeys = Object.keys(formEvents[0]);
 
-        isLink: ['WebSite', 'Document'].includes(displayColumns[index]),
-        document: ['Document'].includes(displayColumns[index])
+      return dataKeys.map((item, index) => ({
+        id: item,
+        label: displayColumns[index] || item,
+        minWidth: 100,
+        isLink: ['WebSite', 'Document'].includes(displayColumns[index] || ''),
+        document: ['Document'].includes(displayColumns[index] || '')
       }));
     }
-    return displayColumns?.map((item, index) => ({
-      id: item + '',
-      label: index === 0 ? 'Unique ID' : item,
+
+    return displayColumns.map((item, index) => ({
+      id: item,
+      label: item,
       minWidth: 100,
-      isLink: ['WebSite', 'Document'].includes(displayColumns[index]),
-      document: ['Document'].includes(displayColumns[index])
+      isLink: ['WebSite', 'Document'].includes(item),
+      document: ['Document'].includes(item)
     }));
-  }, [formEvents, displayColumns]);
+  }, [formEvents]);
+
   useEffect(() => {
     let timeOut;
     if (!loading) {
@@ -81,7 +133,7 @@ export default function SubmitTables({ formEvents, loading }) {
       <PopoverDialog open={open} anchorEl={anchorEl} handleClose={handleClose}>
         <Stack className={classes.stackContainer}>
           <Button
-            onClick={handleClose}
+            onClick={handleApprove}
             className={classes.button}
             variant="text"
             sx={{
@@ -104,7 +156,7 @@ export default function SubmitTables({ formEvents, loading }) {
                 borderRadius: '0px'
               }
             }}
-            onClick={handleClose}
+            onClick={handleReject}
             className={classes.button}
             variant="text"
           >

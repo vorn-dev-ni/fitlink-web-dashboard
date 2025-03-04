@@ -10,8 +10,7 @@ export const defaultUser = {
   email: '',
   role: '',
   avatar: '',
-  provider: '',
-  role: ''
+  provider: ''
 };
 const storage = createJSONStorage(
   // getStringStorage

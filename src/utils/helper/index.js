@@ -6,9 +6,12 @@ export const formatDateApp = (date) => {
   return dayjs(date).format('DD, MMM YYYY');
 };
 export const collectionNames = {
-  users: 'users',
-  submission: 'submissions',
-  event: 'events'
+  // eslint-disable-next-line prettier/prettier
+  users: "users",
+  // eslint-disable-next-line prettier/prettier
+  submission: "submissions",
+  // eslint-disable-next-line prettier/prettier
+  event: "events",
 };
 
 export const resetScroll = () => {

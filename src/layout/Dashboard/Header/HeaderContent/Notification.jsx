@@ -1,70 +1,134 @@
-import { useRef, useState } from 'react';
-
-// material-ui
+import React, { useRef, useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import Avatar from '@mui/material/Avatar';
-import Badge from '@mui/material/Badge';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
-import Paper from '@mui/material/Paper';
-import Popper from '@mui/material/Popper';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-
-// project import
+import { BellOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import {
+  Badge,
+  ClickAwayListener,
+  Divider,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemAvatar,
+  ListItemText,
+  ListItemSecondaryAction,
+  Paper,
+  Popper,
+  Tooltip,
+  Typography,
+  Box,
+  Avatar
+} from '@mui/material';
+import { useSubmissions } from 'hooks';
 import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { useNavigate } from 'react-router-dom';
 
-// assets
-import BellOutlined from '@ant-design/icons/BellOutlined';
-import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
-import GiftOutlined from '@ant-design/icons/GiftOutlined';
-import MessageOutlined from '@ant-design/icons/MessageOutlined';
-import SettingOutlined from '@ant-design/icons/SettingOutlined';
+dayjs.extend(relativeTime);
 
-// sx styles
-const avatarSX = {
-  width: 36,
-  height: 36,
-  fontSize: '1rem'
+// Function to parse and format submission_date
+const parseSubmissionDate = (submissionDate) => {
+  if (submissionDate?.toDate) {
+    // If it's a Firestore Timestamp
+    return dayjs(submissionDate.toDate()).format('DD MMM YYYY, hh:mm A');
+  } else if (submissionDate instanceof Date) {
+    // If it's a JavaScript Date object
+    return dayjs(submissionDate).format('DD MMM YYYY, hh:mm A');
+  } else if (typeof submissionDate === 'string') {
+    // If it's a string, parse it with dayjs
+    return dayjs(submissionDate).format('DD MMM YYYY, hh:mm A');
+  }
+  return ''; // Fallback for invalid dates
 };
-
-const actionSX = {
-  mt: '6px',
-  ml: 1,
-  top: 'auto',
-  right: 'auto',
-  alignSelf: 'flex-start',
-
-  transform: 'none'
-};
-
-// ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
 
 export default function Notification() {
   const theme = useTheme();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
+  const { formEvents } = useSubmissions();
+  const navigate = useNavigate();
 
   const anchorRef = useRef(null);
-  const [read, setRead] = useState(2);
   const [open, setOpen] = useState(false);
+  const [readCount, setReadCount] = useState(0);
+  const [showAll, setShowAll] = useState(false);
+  const [seenIds, setSeenIds] = useState(new Set());
+
+  // Load seenIds from localStorage on component mount
+  useEffect(() => {
+    const storedSeenIds = localStorage.getItem('seenIds');
+    if (storedSeenIds) {
+      setSeenIds(new Set(JSON.parse(storedSeenIds)));
+    }
+  }, []);
+
+  // Save seenIds to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('seenIds', JSON.stringify([...seenIds]));
+  }, [seenIds]);
+
+  // Convert submission_date to a comparable value (timestamp in milliseconds)
+  const getSubmissionTimestamp = (submission) => {
+    if (submission.submission_date?.toDate) {
+      // If it's a Firestore Timestamp
+      return submission.submission_date.toDate().getTime();
+    } else if (submission.submission_date instanceof Date) {
+      // If it's a JavaScript Date object
+      return submission.submission_date.getTime();
+    } else if (typeof submission.submission_date === 'string') {
+      // If it's a string, parse it with dayjs
+      return dayjs(submission.submission_date).valueOf();
+    }
+    return 0; // Fallback for invalid dates
+  };
+
+  // Sort submissions by date descending and filter new ones
+  const sortedSubmissions = [...formEvents].sort((a, b) => getSubmissionTimestamp(b) - getSubmissionTimestamp(a));
+
+  const newSubmissions = sortedSubmissions.filter((submission) => submission.status === 'pending' && !seenIds.has(submission.id));
+
+  // Update read count when submissions change
+  useEffect(() => {
+    setReadCount(newSubmissions.length);
+  }, [formEvents, seenIds]);
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
   const handleClose = (event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
-    }
+    if (anchorRef.current?.contains(event.target)) return;
     setOpen(false);
+  };
+
+  const handleMarkAllAsRead = () => {
+    const allIds = new Set([...seenIds, ...formEvents.map((s) => s.id)]);
+    setSeenIds(allIds);
+    setReadCount(0); // Reset the count to 0
+  };
+
+  const handleNotificationClick = (submission) => {
+    // Mark the clicked notification as seen
+    if (!seenIds.has(submission.id)) {
+      setSeenIds((prevSeenIds) => new Set([...prevSeenIds, submission.id]));
+      setReadCount((prevCount) => prevCount - 1); // Decrement the read count
+    }
+    navigate('/submissions/view', { state: { submission } });
+  };
+
+  // sx styles
+  const avatarSX = {
+    width: 36,
+    height: 36,
+    fontSize: '1rem'
+  };
+
+  const actionSX = {
+    mt: '6px',
+    ml: 1,
+    alignSelf: 'flex-start',
+    transform: 'none'
   };
 
   const iconBackColorOpen = 'grey.100';
@@ -75,16 +139,14 @@ export default function Notification() {
         color="secondary"
         variant="light"
         sx={{ color: 'text.primary', bgcolor: open ? iconBackColorOpen : 'transparent' }}
-        aria-label="open profile"
         ref={anchorRef}
-        aria-controls={open ? 'profile-grow' : undefined}
-        aria-haspopup="true"
         onClick={handleToggle}
       >
-        <Badge badgeContent={read} color="primary">
+        <Badge badgeContent={readCount} color="primary">
           <BellOutlined />
         </Badge>
       </IconButton>
+
       <Popper
         placement={matchesXs ? 'bottom' : 'bottom-end'}
         open={open}
@@ -99,20 +161,18 @@ export default function Notification() {
             <Paper sx={{ boxShadow: theme.customShadows.z1, width: '100%', minWidth: 285, maxWidth: { xs: 285, md: 420 } }}>
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard
-                  title="Notification"
+                  title="Notifications"
                   elevation={0}
                   border={false}
                   content={false}
                   secondary={
-                    <>
-                      {read > 0 && (
-                        <Tooltip title="Mark as all read">
-                          <IconButton color="success" size="small" onClick={() => setRead(0)}>
-                            <CheckCircleOutlined style={{ fontSize: '1.15rem' }} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </>
+                    readCount > 0 && (
+                      <Tooltip title="Mark all as read">
+                        <IconButton color="success" size="small" onClick={handleMarkAllAsRead}>
+                          <CheckCircleOutlined style={{ fontSize: '1.15rem' }} />
+                        </IconButton>
+                      </Tooltip>
+                    )
                   }
                 >
                   <List
@@ -127,109 +187,39 @@ export default function Notification() {
                       }
                     }}
                   >
-                    <ListItemButton selected={read > 0}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                          <GiftOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            It&apos;s{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Cristina danny&apos;s
-                            </Typography>{' '}
-                            birthday today.
-                          </Typography>
-                        }
-                        secondary="2 min ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          3:00 AM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
-                          <MessageOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Aida Burg
-                            </Typography>{' '}
-                            commented your post.
-                          </Typography>
-                        }
-                        secondary="5 August"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          6:00 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton selected={read > 0}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
-                          <SettingOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            Your Profile is Complete &nbsp;
-                            <Typography component="span" variant="subtitle1">
-                              60%
-                            </Typography>{' '}
-                          </Typography>
-                        }
-                        secondary="7 hours ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          2:45 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>C</Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Cristina Danny
-                            </Typography>{' '}
-                            invited to join{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Meeting.
+                    {(showAll ? sortedSubmissions.slice(0, 8) : newSubmissions.slice(0, 8)).map((submission) => (
+                      <React.Fragment key={submission.id}>
+                        <ListItemButton onClick={() => handleNotificationClick(submission)}>
+                          <ListItemAvatar>
+                            <Avatar sx={{ color: 'info.main', bgcolor: 'info.lighter' }}>
+                              {submission.contact_name ? submission.contact_name.charAt(0).toUpperCase() : 'U'}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Typography variant="h6">
+                                New submission from{' '}
+                                <Typography component="span" variant="subtitle1">
+                                  {submission.contact_name}
+                                </Typography>
+                              </Typography>
+                            }
+                            secondary={parseSubmissionDate(submission.submission_date)}
+                          />
+                          <ListItemSecondaryAction>
+                            <Typography variant="caption" noWrap>
+                              {dayjs(submission.submission_date).fromNow()}
                             </Typography>
-                          </Typography>
-                        }
-                        secondary="Daily scrum meeting time"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          9:10 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }}>
+                          </ListItemSecondaryAction>
+                        </ListItemButton>
+                        <Divider />
+                      </React.Fragment>
+                    ))}
+                    <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }} onClick={() => setShowAll((prev) => !prev)}>
                       <ListItemText
                         primary={
                           <Typography variant="h6" color="primary">
-                            View All
+                            {showAll ? 'Show New Only' : 'View All'}
                           </Typography>
                         }
                       />
