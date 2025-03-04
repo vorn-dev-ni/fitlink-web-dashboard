@@ -99,7 +99,7 @@ export default function SubmitTables({ formEvents, loading }) {
 
       return dataKeys.map((item, index) => ({
         id: item,
-        label: displayColumns[index] || item,
+        label: displayColumns[index] || item, // Fallback to key name if no display column is found
         minWidth: 100,
         isLink: ['WebSite', 'Document'].includes(displayColumns[index] || ''),
         document: ['Document'].includes(displayColumns[index] || '')
@@ -108,7 +108,7 @@ export default function SubmitTables({ formEvents, loading }) {
 
     return displayColumns.map((item, index) => ({
       id: item,
-      label: item,
+      label: item, // Ensure label is defined
       minWidth: 100,
       isLink: ['WebSite', 'Document'].includes(item),
       document: ['Document'].includes(item)

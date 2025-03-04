@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Box, Grid, Stack, TextField, Typography } from '@mui/material';
 import MainCard from 'components/MainCard';
-import dayjs from 'dayjs';
 
 const SubmissionViewPage = () => {
   const location = useLocation();
-  const submission = location.state?.submission;
+  const submission = location.state?.submission; // Get submission data from navigation state
 
   const [formData, setFormData] = useState({
     contact_name: '',
@@ -18,25 +17,27 @@ const SubmissionViewPage = () => {
     submission_date: ''
   });
 
+  // Function to parse submission_date
   const parseSubmissionDate = (submissionDate) => {
     if (submissionDate?.toDate) {
-      return dayjs(submissionDate.toDate()).format('DD MMM YYYY, hh:mm A');
-    } else if (submissionDate instanceof Date) {
-      return dayjs(submissionDate).format('DD MMM YYYY, hh:mm A');
-    } else if (typeof submissionDate === 'string') {
-      return dayjs(submissionDate).format('DD MMM YYYY, hh:mm A');
+      // If it's a Firestore Timestamp
+      return submissionDate.toDate().toLocaleString();
+    } else if (submissionDate) {
+      // If it's a string, parse it with dayjs or use it directly
+      return submissionDate;
     }
-    return 'Invalid Date';
+    return ''; // Fallback for invalid dates
   };
 
+  // Populate form data if submission exists
   useEffect(() => {
     console.log('Submission Data:', submission); // Debug
     if (submission) {
       setFormData({
         contact_name: submission.contact_name || '',
-        phone_number: submission.phone_number || '',
+        phone_number: submission.phone_number || '', // Use 'phone_number' instead of 'telephone'
         email: submission.email || '',
-        address: submission.address || '',
+        address: submission.address || '', // Already correct
         trainer_certification: submission.trainer_certification ? 'Yes' : 'No',
         proof_documents: submission.proof_documents || [],
         submission_date: parseSubmissionDate(submission.submission_date)

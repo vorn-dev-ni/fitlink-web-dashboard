@@ -22,26 +22,12 @@ import {
 import { useSubmissions } from 'hooks';
 import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
+import { GiftOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useNavigate } from 'react-router-dom';
 
 dayjs.extend(relativeTime);
-
-// Function to parse and format submission_date
-const parseSubmissionDate = (submissionDate) => {
-  if (submissionDate?.toDate) {
-    // If it's a Firestore Timestamp
-    return dayjs(submissionDate.toDate()).format('DD MMM YYYY, hh:mm A');
-  } else if (submissionDate instanceof Date) {
-    // If it's a JavaScript Date object
-    return dayjs(submissionDate).format('DD MMM YYYY, hh:mm A');
-  } else if (typeof submissionDate === 'string') {
-    // If it's a string, parse it with dayjs
-    return dayjs(submissionDate).format('DD MMM YYYY, hh:mm A');
-  }
-  return ''; // Fallback for invalid dates
-};
 
 export default function Notification() {
   const theme = useTheme();
@@ -55,28 +41,17 @@ export default function Notification() {
   const [showAll, setShowAll] = useState(false);
   const [seenIds, setSeenIds] = useState(new Set());
 
-  // Load seenIds from localStorage on component mount
+  // Reset seenIds when the component mounts
   useEffect(() => {
-    const storedSeenIds = localStorage.getItem('seenIds');
-    if (storedSeenIds) {
-      setSeenIds(new Set(JSON.parse(storedSeenIds)));
-    }
+    setSeenIds(new Set());
   }, []);
-
-  // Save seenIds to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('seenIds', JSON.stringify([...seenIds]));
-  }, [seenIds]);
 
   // Convert submission_date to a comparable value (timestamp in milliseconds)
   const getSubmissionTimestamp = (submission) => {
     if (submission.submission_date?.toDate) {
       // If it's a Firestore Timestamp
       return submission.submission_date.toDate().getTime();
-    } else if (submission.submission_date instanceof Date) {
-      // If it's a JavaScript Date object
-      return submission.submission_date.getTime();
-    } else if (typeof submission.submission_date === 'string') {
+    } else if (submission.submission_date) {
       // If it's a string, parse it with dayjs
       return dayjs(submission.submission_date).valueOf();
     }
@@ -94,7 +69,15 @@ export default function Notification() {
   }, [formEvents, seenIds]);
 
   const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
+    setOpen((prevOpen) => {
+      if (!prevOpen) {
+        // Mark all current new submissions as seen when opening
+        const newSeen = new Set([...seenIds, ...newSubmissions.map((s) => s.id)]);
+        setSeenIds(newSeen);
+        setReadCount(0); // Reset the notification count
+      }
+      return !prevOpen;
+    });
   };
 
   const handleClose = (event) => {
@@ -105,15 +88,11 @@ export default function Notification() {
   const handleMarkAllAsRead = () => {
     const allIds = new Set([...seenIds, ...formEvents.map((s) => s.id)]);
     setSeenIds(allIds);
-    setReadCount(0); // Reset the count to 0
+    setReadCount(0);
   };
 
   const handleNotificationClick = (submission) => {
-    // Mark the clicked notification as seen
-    if (!seenIds.has(submission.id)) {
-      setSeenIds((prevSeenIds) => new Set([...prevSeenIds, submission.id]));
-      setReadCount((prevCount) => prevCount - 1); // Decrement the read count
-    }
+    console.log('Clicked Submission:', submission); // Debug
     navigate('/submissions/view', { state: { submission } });
   };
 
@@ -192,7 +171,7 @@ export default function Notification() {
                         <ListItemButton onClick={() => handleNotificationClick(submission)}>
                           <ListItemAvatar>
                             <Avatar sx={{ color: 'info.main', bgcolor: 'info.lighter' }}>
-                              {submission.contact_name ? submission.contact_name.charAt(0).toUpperCase() : 'U'}
+                              <GiftOutlined />
                             </Avatar>
                           </ListItemAvatar>
                           <ListItemText
@@ -204,7 +183,7 @@ export default function Notification() {
                                 </Typography>
                               </Typography>
                             }
-                            secondary={parseSubmissionDate(submission.submission_date)}
+                            secondary={dayjs(submission.submission_date).format('DD MMM YYYY, hh:mm A')}
                           />
                           <ListItemSecondaryAction>
                             <Typography variant="caption" noWrap>
