@@ -1,29 +1,31 @@
 import { lazy, Suspense } from 'react';
 
-// project import
+// Project imports
 import Loadable from 'components/Loadable';
 import SimpleLoading from 'components/SimpleLoading';
 import Dashboard from 'layout/Dashboard';
-// import SubmissionLayout from 'layout/Submission';
 import { Navigate } from 'react-router';
 import { ProtectedRoutes } from './ProtectedRoute';
 
+// Lazy-loaded components
 const Color = Loadable(lazy(() => import('pages/components/color')));
 const Typography = Loadable(lazy(() => import('pages/components/typography')));
 const Shadow = Loadable(lazy(() => import('pages/components/shadows')));
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
 const ErrorPage = Loadable(lazy(() => import('pages/error/ErrorPage')));
 
-// render - sample page
+// Sample pages
 const EventCreateEdit = Loadable(lazy(() => import('pages/event/form')));
 const UserPage = Loadable(lazy(() => import('pages/users/index')));
 const EventPage = Loadable(lazy(() => import('pages/event')));
 const SubmitPage = Loadable(lazy(() => import('pages/submissions')));
 const UserCreateEdit = Loadable(lazy(() => import('pages/users/form')));
 
+// Submission pages
 const SubmissionCreatePage = Loadable(lazy(() => import('pages/submissions/form/index')));
+const SubmissionViewPage = Loadable(lazy(() => import('pages/submissions/components/SubmissionViewPage'))); // Import the new component
 
-//ROot
+// Layouts
 const SubmissionLayout = Loadable(lazy(() => import('layout/Submission')));
 const EventLayout = Loadable(lazy(() => import('layout/Event')));
 
@@ -39,7 +41,6 @@ const MainRoutes = {
       </ProtectedRoutes>
     </Suspense>
   ),
-  // loader: protectedRouteLoader,
   children: [
     {
       path: '/',
@@ -113,6 +114,10 @@ const MainRoutes = {
         {
           path: 'create',
           element: <SubmissionCreatePage />
+        },
+        {
+          path: 'view', // New route for viewing submissions
+          element: <SubmissionViewPage />
         },
         {
           path: 'edit',

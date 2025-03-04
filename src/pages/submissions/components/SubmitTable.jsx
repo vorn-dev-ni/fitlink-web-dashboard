@@ -94,25 +94,27 @@ export default function SubmitTables({ formEvents, loading }) {
   }, [formEvents]);
 
   const getColumns = useMemo(() => {
-    if (formEvents?.length && formEvents != undefined && displayColumns.length) {
-      const data = Object.keys(formEvents[0]);
-      return data?.map((item, index) => ({
-        id: item + '',
-        label: displayColumns[index],
-        minWidth: 100,
+    if (formEvents?.length > 0) {
+      const dataKeys = Object.keys(formEvents[0]);
 
-        isLink: ['WebSite', 'Document'].includes(displayColumns[index]),
-        document: ['Document'].includes(displayColumns[index])
+      return dataKeys.map((item, index) => ({
+        id: item,
+        label: displayColumns[index] || item,
+        minWidth: 100,
+        isLink: ['WebSite', 'Document'].includes(displayColumns[index] || ''),
+        document: ['Document'].includes(displayColumns[index] || '')
       }));
     }
-    return displayColumns?.map((item, index) => ({
-      id: item + '',
-      label: index === 0 ? 'Unique ID' : item,
+
+    return displayColumns.map((item, index) => ({
+      id: item,
+      label: item,
       minWidth: 100,
-      isLink: ['WebSite', 'Document'].includes(displayColumns[index]),
-      document: ['Document'].includes(displayColumns[index])
+      isLink: ['WebSite', 'Document'].includes(item),
+      document: ['Document'].includes(item)
     }));
-  }, [formEvents, displayColumns]);
+  }, [formEvents]);
+
   useEffect(() => {
     let timeOut;
     if (!loading) {
