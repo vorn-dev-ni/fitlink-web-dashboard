@@ -23,7 +23,9 @@ export const useSubmissions = () => {
             status: doc.data()?.status || 'pending', // Default to 'pending'
             proof_documents: doc.data()?.proof_documents,
             submission_date: dayjs(new Date(timestamp.seconds * 1000)).format('DD MMM YYYY'),
-            submission_timestamp: dayjs(new Date(timestamp.seconds * 1000)).format('h:mm A')
+            submission_timestamp: dayjs(new Date(timestamp.seconds * 1000)).format('h:mm A'),
+            address: doc.data()?.address,
+            phone_number: doc.data()?.phone_number
           };
         });
         setFormSubmit(formApprovals);
