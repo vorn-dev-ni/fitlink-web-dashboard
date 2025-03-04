@@ -6,7 +6,7 @@
  *
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
-
+import { Message } from 'firebase-admin/messaging';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions/v1';
 import sharp from 'sharp';
@@ -14,6 +14,142 @@ admin.initializeApp();
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
+export const handleInvalidToken = functions.firestore.document('users/{userId}').onUpdate((change, context) => {
+  const userId = context.params.userId;
+  const newValue = change.after.data();
+  const oldValue = change.before.data();
+
+  if (!newValue.fcmToken && oldValue.fcmToken) {
+    // Remove the FCM token from your database
+    return admin.firestore().collection('users').doc(userId).update({
+      fcmToken: admin.firestore.FieldValue.delete()
+    });
+  }
+  return null;
+});
+export const sendNotificationToSpecificUser = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('permission-denied', 'User must be authenticated');
+  }
+
+  const { eventType, senderID, receiverID, postID } = data;
+
+  if (!eventType || !senderID || !receiverID) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters');
+  }
+
+  const userReceiverRef = admin.firestore().collection('users').doc(receiverID);
+  const userReceiverSnap = await userReceiverRef.get();
+  if (!userReceiverSnap.exists) {
+    console.log('Receiver not found');
+    return { message: 'Receiver not found' };
+  }
+
+  // Retrieve the receiver's FCM token
+  const userRef = admin.firestore().collection('users').doc(senderID);
+  const userSnap = await userRef.get();
+  if (!userSnap.exists) {
+    console.log('User not found');
+    return { message: 'User not found' };
+  }
+  const userDataSender = userSnap.data();
+  const senderImageUrl = userDataSender?.imageUrl || null;
+
+  const userReceiverSender = userReceiverSnap.data();
+  const fcmTokenReceiver = userReceiverSender?.fcmToken;
+  if (!fcmTokenReceiver) {
+    console.log('FCM token not found');
+    return { message: 'FCM token not found' };
+  }
+
+  // Prepare the notification payload
+  let title = '';
+  let body = '';
+  let notificationData = { type: eventType, senderID, receiverID, postID };
+
+  switch (eventType) {
+    case 'like':
+      title = 'New Like on Your Post';
+      body = `${userDataSender?.fullName} liked your post.`;
+      notificationData.postID = postID;
+      break;
+    case 'comment':
+      title = 'New Comment on Your Post';
+      body = `${userDataSender?.fullName} commented on your post.`;
+      notificationData.postID = postID;
+      break;
+    case 'following':
+      title = 'New Follower';
+      body = `${userDataSender?.fullName} started following you.`;
+      notificationData.postID = senderID;
+      break;
+    case 'submission':
+      title = 'You have been promoted';
+      body = `Congratulation, you can now start posting events !!!`;
+      notificationData.postID = senderID;
+      //This should be event id so i can deep link in app
+      break;
+    case 'join-event':
+      title = 'Someone has interest in your Event';
+      body = `${userDataSender?.fullName} is interested in your event`;
+      notificationData.postID = senderID;
+      break;
+    default:
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid event type');
+  }
+
+  const payload: Message = {
+    notification: {
+      title: title,
+      body: body
+    },
+    data: notificationData,
+    token: fcmTokenReceiver
+  };
+  if (senderImageUrl) {
+    payload.android = {
+      notification: {}
+    };
+  }
+
+  if (senderImageUrl) {
+    payload.apns = {
+      payload: {
+        aps: {
+          mutable_content: 1
+        }
+      }
+    };
+  }
+
+  try {
+    const response = await admin.messaging().send(payload);
+    console.log('Successfully sent message:', response);
+  } catch (error: any) {
+    console.error('Error sending message:', error);
+
+    if (error?.code === 'messaging/registration-token-not-registered') {
+      await admin.firestore().collection('users').doc(receiverID).update({
+        fcmToken: admin.firestore.FieldValue.delete()
+      });
+      throw new functions.https.HttpsError('internal', 'FCM token invalid. Removed from Firestore.');
+    }
+
+    throw new functions.https.HttpsError('internal', 'Failed to send notification');
+  }
+
+  // Store the notification in Firestore
+  const notificationRef = admin.firestore().collection('users').doc(receiverID).collection('notifications').doc();
+  await notificationRef.set({
+    type: eventType,
+    senderID: senderID,
+    postID: postID || null,
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    read: false
+  });
+
+  return { message: 'Notification sent successfully' };
+});
 export const compressImage = functions.storage.object().onFinalize(async (object) => {
   const bucket = admin.storage().bucket(object.bucket);
   const filePath = object.name;
@@ -66,6 +202,56 @@ export const deleteUserOnFirestoreDelete = functions.firestore
       throw new functions.https.HttpsError('internal', 'Failed to delete user from Firebase Auth');
     }
   });
+
+export const sendNotification = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('permission-denied', 'User must be authenticated');
+  }
+
+  const { token, title, body, dataPayload, soundUrl } = data;
+
+  if (!token || !title || !body) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters');
+  }
+
+  // FCM message payload
+  const message: admin.messaging.Message = {
+    notification: {
+      title: title,
+      body: body
+    },
+    android: {
+      notification: {
+        sound: soundUrl || 'default' // Custom sound file in res/raw/
+      }
+    },
+    apns: {
+      payload: {
+        aps: {
+          sound: soundUrl || 'default' // Custom sound file in the iOS app bundle
+        }
+      }
+    },
+    data: dataPayload || {},
+    token: token
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log('Successfully sent message:', response);
+    return { message: 'Notification sent successfully', response };
+  } catch (error: any) {
+    console.error('Error sending message:', error);
+
+    if (error?.code === 'messaging/registration-token-not-registered') {
+      // Remove the invalid token from Firestore
+
+      throw new functions.https.HttpsError('internal', 'FCM token invalid. Removed from Firestore.');
+    }
+
+    throw new functions.https.HttpsError('internal', 'Failed to send notification');
+  }
+});
 
 export const createEditUser = functions.https.onCall(async (data, context) => {
   const { email, password, fullName, photoURL, role = 'admin', bio, uid } = data;
