@@ -19,6 +19,7 @@ const EventTable = ({ onDelete, onEdit, events, loading, hightLightText }) => {
   const open = Boolean(anchorEl);
   const classes = useStyles();
   const handleClick = (event, data) => {
+    // alert(JSON.stringify(data));
     setAnchorEl(event.currentTarget);
     setEventData(data);
   };

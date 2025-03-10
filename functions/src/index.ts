@@ -78,6 +78,11 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
       body = `${userDataSender?.fullName} commented on your post.`;
       notificationData.postID = postID;
       break;
+    case 'comment-liked':
+      title = 'Someone liked on Your Comment';
+      body = `${userDataSender?.fullName} commented on your post.`;
+      notificationData.postID = postID;
+      break;
     case 'following':
       title = 'New Follower';
       body = `${userDataSender?.fullName} started following you.`;
