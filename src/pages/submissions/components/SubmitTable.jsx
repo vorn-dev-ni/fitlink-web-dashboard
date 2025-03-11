@@ -111,7 +111,7 @@ export default function SubmitTables({ formEvents, loading, hightLightText }) {
 
   const handleApprove = async () => {
     if (!selectedSubmission) {
-      console.error('No submission selected');
+      console.error('No submission selected.');
       return;
     }
     await updateSubmissionAndUser(selectedSubmission, 'approved', receiverEmail);
