@@ -32,7 +32,7 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
     throw new functions.https.HttpsError('permission-denied', 'User must be authenticated');
   }
 
-  const { eventType, senderID, receiverID, postID } = data;
+  const { eventType, senderID, receiverID, postID, text } = data;
 
   if (!eventType || !senderID || !receiverID) {
     throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters');
@@ -65,7 +65,7 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
   // Prepare the notification payload
   let title = '';
   let body = '';
-  let notificationData = { type: eventType, senderID, receiverID, postID };
+  let notificationData = { type: eventType, senderID, receiverID, postID, text };
 
   switch (eventType) {
     case 'like':
@@ -80,7 +80,7 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
       break;
     case 'comment-liked':
       title = 'Someone liked on Your Comment';
-      body = `${userDataSender?.fullName} commented on your post.`;
+      body = `${userDataSender?.fullName} has liked your comment on post.`;
       notificationData.postID = postID;
       break;
     case 'following':
@@ -98,6 +98,11 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
       title = 'Someone has interest in your Event';
       body = `${userDataSender?.fullName} is interested in your event`;
       notificationData.postID = senderID;
+      break;
+    case 'chat':
+      title = `${userDataSender?.fullName}`;
+      body = text;
+      notificationData.postID = postID;
       break;
     default:
       throw new functions.https.HttpsError('invalid-argument', 'Invalid event type');
