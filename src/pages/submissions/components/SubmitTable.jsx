@@ -17,7 +17,7 @@ import { userAtom } from 'atom';
 
 const displayColumns = ['Unique ID', 'Email', 'Name', 'Status', 'Document', 'Date'];
 
-export default function SubmitTables({ formEvents, loading }) {
+export default function SubmitTables({ formEvents, loading, hightLightText }) {
   const [pageState, setPageState] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const classes = useStyles();
@@ -53,7 +53,6 @@ export default function SubmitTables({ formEvents, loading }) {
 
       await updateDoc(submissionRef, { status: newStatus });
 
-      // Retrieve receiverID from Firestore based on email
       const usersRef = collection(db, 'users');
       const userQuery = query(usersRef, where('email', '==', receiverEmail));
       const querySnapshot = await getDocs(userQuery);
@@ -63,27 +62,25 @@ export default function SubmitTables({ formEvents, loading }) {
         return false;
       }
 
-      const receiverDoc = querySnapshot.docs[0]; // Assuming emails are unique
-      const receiverID = receiverDoc.id; // Firestore document ID (or use receiverDoc.data().uid if stored in DB)
+      const receiverDoc = querySnapshot.docs[0];
+      const receiverID = receiverDoc.id;
 
-      // Check if sender and receiver have the same user ID
       if (receiverID === user.uid) {
         console.error('Cannot send email to yourself');
         return false;
       }
 
-      // Send Email Notification
       await requestApiData(
         'https://hey-local-be.onrender.com/mail/send-sandbox',
         {
-          senderEmail: 'Nightpp19@gmail.com',
-          senderPassword: 'coxldawyiohsjbqx',
+          senderEmail: 'fitlink2025@gmail.com',
+          senderPassword: 'lsonjycjgxkqurmq',
           companyName: 'FitLink',
           to: receiverEmail,
-          subject: 'Submission Update',
-          title: `Your submission has been ${newStatus}`,
-          text: `Your submission status is now ${newStatus}`,
-          description: `We're informing you that your submission has been ${newStatus} by our team.`,
+          subject: 'Update on Your Submission Status',
+          title: `Submission Status: ${newStatus}`,
+          text: `Dear User, your submission status has been updated to: ${newStatus}.`,
+          description: `We would like to inform you that your submission has been ${newStatus} after a thorough review by our team. If you have any questions or require further clarification, please feel free to contact us.`,
           imageUrl:
             'https://firebasestorage.googleapis.com/v0/b/fitlink-b3d6b.firebasestorage.app/o/images%2Ffitlink-one.jpg?alt=media&token=ba33d84b-6b36-4886-984e-c3c8d701b7a1',
           imageWidth: '175px',
@@ -100,19 +97,6 @@ export default function SubmitTables({ formEvents, loading }) {
         },
         'POST'
       );
-
-      // Send Firebase Notification
-      // const sendNotification = httpsCallable(functions, 'sendNotificationToSpecificUser');
-      // await sendNotification({
-      //   eventType: 'submission',
-      //   senderID: user.uid, // Admin ID
-      //   receiverID: receiverID, // Retrieved user ID
-      //   postID: submissionId // Submission/Event ID
-      // });
-
-      console.log(user.uid);
-      console.log(receiverID);
-      console.log(receiverEmail);
 
       return true;
     } catch (error) {
@@ -157,13 +141,18 @@ export default function SubmitTables({ formEvents, loading }) {
   }, []);
 
   const getRows = useMemo(() => {
-    return formEvents.map((form) => {
-      return {
+    return formEvents
+      .slice() // Clone the array
+      .sort((a, b) => {
+        const dateA = a.submission_date?.toDate?.() || new Date(0);
+        const dateB = b.submission_date?.toDate?.() || new Date(0);
+        return dateB - dateA; // Descending order
+      })
+      .map((form) => ({
         ...form,
         color: getColorStatus(form?.status)
-      };
-    });
-  }, [formEvents]);
+      }));
+  }, [formEvents, getColorStatus]);
 
   const getColumns = useMemo(() => {
     if (formEvents?.length > 0) {
@@ -171,16 +160,17 @@ export default function SubmitTables({ formEvents, loading }) {
 
       return dataKeys.map((item, index) => ({
         id: item,
-        label: displayColumns[index] || item, // Fallback to key name if no display column is found
+        label: displayColumns[index] || item,
         minWidth: 100,
         isLink: ['WebSite', 'Document'].includes(displayColumns[index] || ''),
-        document: ['Document'].includes(displayColumns[index] || '')
+        document: ['Document'].includes(displayColumns[index] || ''),
+        hightLightText
       }));
     }
 
     return displayColumns.map((item, index) => ({
       id: item,
-      label: item, // Ensure label is defined
+      label: item,
       minWidth: 100,
       isLink: ['WebSite', 'Document'].includes(item),
       document: ['Document'].includes(item)
