@@ -17,27 +17,23 @@ const SubmissionViewPage = () => {
     submission_date: ''
   });
 
-  // Function to parse submission_date
   const parseSubmissionDate = (submissionDate) => {
     if (submissionDate?.toDate) {
-      // If it's a Firestore Timestamp
       return submissionDate.toDate().toLocaleString();
     } else if (submissionDate) {
-      // If it's a string, parse it with dayjs or use it directly
       return submissionDate;
     }
-    return ''; // Fallback for invalid dates
+    return '';
   };
 
-  // Populate form data if submission exists
   useEffect(() => {
     console.log('Submission Data:', submission); // Debug
     if (submission) {
       setFormData({
         contact_name: submission.contact_name || '',
-        phone_number: submission.phone_number || '', // Use 'phone_number' instead of 'telephone'
+        phone_number: submission.phone_number || '',
         email: submission.email || '',
-        address: submission.address || '', // Already correct
+        address: submission.address || '',
         trainer_certification: submission.trainer_certification ? 'Yes' : 'No',
         proof_documents: submission.proof_documents || [],
         submission_date: parseSubmissionDate(submission.submission_date)
@@ -52,51 +48,68 @@ const SubmissionViewPage = () => {
           {/* Contact Name */}
           <Grid item xs={6}>
             <Stack spacing={1}>
-              <Typography variant="h5">Contact Name</Typography>
-              <TextField label="Contact Name" fullWidth value={formData.contact_name} disabled />
+              <Typography variant="h5" sx={{ color: 'black' }}>
+                Contact Name
+              </Typography>
+              <TextField label="Contact Name" fullWidth value={formData.contact_name} sx={{ input: { color: 'black' } }} />
             </Stack>
           </Grid>
 
           {/* Phone Number */}
           <Grid item xs={6}>
             <Stack spacing={1}>
-              <Typography variant="h5">Phone Number</Typography>
-              <TextField label="Phone Number" fullWidth value={formData.phone_number} disabled />
+              <Typography variant="h5" sx={{ color: 'black' }}>
+                Phone Number
+              </Typography>
+              <TextField label="Phone Number" fullWidth value={formData.phone_number} sx={{ input: { color: 'black' } }} />
             </Stack>
           </Grid>
 
           {/* Email */}
           <Grid item xs={6}>
             <Stack spacing={1}>
-              <Typography variant="h5">Email</Typography>
-              <TextField label="Email Address" fullWidth value={formData.email} disabled />
+              <Typography variant="h5" sx={{ color: 'black' }}>
+                Email
+              </Typography>
+              <TextField label="Email Address" fullWidth value={formData.email} sx={{ input: { color: 'black' } }} />
             </Stack>
           </Grid>
 
           {/* Address */}
           <Grid item xs={6}>
             <Stack spacing={1}>
-              <Typography variant="h5">Address</Typography>
-              <TextField label="Address" fullWidth value={formData.address} disabled />
+              <Typography variant="h5" sx={{ color: 'black' }}>
+                Address
+              </Typography>
+              <TextField label="Address" fullWidth value={formData.address} sx={{ input: { color: 'black' } }} />
             </Stack>
           </Grid>
 
           {/* Trainer Certification */}
           <Grid item xs={6}>
             <Stack spacing={1}>
-              <Typography variant="h5">Trainer Certification</Typography>
-              <TextField label="Trainer Certification" fullWidth value={formData.trainer_certification} disabled />
+              <Typography variant="h5" sx={{ color: 'black' }}>
+                Trainer Certification
+              </Typography>
+              <TextField
+                label="Trainer Certification"
+                fullWidth
+                value={formData.trainer_certification}
+                sx={{ input: { color: 'black' } }}
+              />
             </Stack>
           </Grid>
 
           {/* Proof Documents */}
           <Grid item xs={12}>
             <Stack spacing={1}>
-              <Typography variant="h5">Proof Documents</Typography>
+              <Typography variant="h5" sx={{ color: 'black' }}>
+                Proof Documents
+              </Typography>
               {formData.proof_documents.map((document, index) => (
                 <Box key={index} sx={{ mb: 2 }}>
-                  <Typography variant="body1">
-                    <a href={document} target="_blank" rel="noopener noreferrer">
+                  <Typography variant="body1" sx={{ color: 'black' }}>
+                    <a href={document} target="_blank" rel="noopener noreferrer" style={{ color: 'black' }}>
                       Document {index + 1}
                     </a>
                   </Typography>
@@ -108,8 +121,10 @@ const SubmissionViewPage = () => {
           {/* Submission Date */}
           <Grid item xs={6}>
             <Stack spacing={1}>
-              <Typography variant="h5">Submission Date</Typography>
-              <TextField label="Submission Date" fullWidth value={formData.submission_date} disabled />
+              <Typography variant="h5" sx={{ color: 'black' }}>
+                Submission Date
+              </Typography>
+              <TextField label="Submission Date" fullWidth value={formData.submission_date} sx={{ input: { color: 'black' } }} />
             </Stack>
           </Grid>
         </Grid>

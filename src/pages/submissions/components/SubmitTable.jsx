@@ -5,10 +5,11 @@ import { useTheme } from '@mui/material/styles';
 import SimpleLoading from 'components/SimpleLoading';
 import AppTable from 'components/tables/AppTable';
 import PopoverDialog from 'components/tables/PopoverDialog';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import guidelines from 'themes/styles';
-import { db } from 'utils/config/firebase';
+import { db, functions } from 'utils/config/firebase';
 import useStyles from '../Submission.style';
 import { useAtomValue } from 'jotai';
 import { useApi } from 'api';
@@ -16,7 +17,7 @@ import { userAtom } from 'atom';
 
 const displayColumns = ['Unique ID', 'Email', 'Name', 'Status', 'Document', 'Date'];
 
-export default function SubmitTables({ formEvents, loading }) {
+export default function SubmitTables({ formEvents, loading, hightLightText }) {
   const [pageState, setPageState] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const classes = useStyles();
@@ -27,6 +28,7 @@ export default function SubmitTables({ formEvents, loading }) {
   const { requestApiData } = useApi();
   const user = useAtomValue(userAtom);
   const [receiverEmail, setReceiverEmail] = useState('');
+
   const handleClick = (event, rowData) => {
     // alert('click asdsa', JSON.stringify(rowData.id));
 
@@ -36,6 +38,7 @@ export default function SubmitTables({ formEvents, loading }) {
     setSubmissionId(rowData.id);
     setReceiverEmail(rowData.email);
   };
+
   const updateSubmissionAndUser = async (submissionId, newStatus, receiverEmail) => {
     try {
       if (!submissionId || typeof submissionId !== 'string') {
@@ -52,40 +55,52 @@ export default function SubmitTables({ formEvents, loading }) {
       }
 
       await updateDoc(submissionRef, { status: newStatus });
-      // await requestApiData(
-      //   'https://hey-local-be.onrender.com/mail/send-sandbox',
-      //   {
-      //     senderEmail: 'Nightpp19@gmail.com',
-      //     senderPassword: 'wkajsdak2ks',
-      //     companyName: 'FitLink',
-      //     to: receiverEmail,
-      //     subject: 'Welcome',
-      //     title: 'Welcome to our service!',
-      //     text: 'Hello, this is a test message.',
-      //     description: 'We are excited to have you.',
-      //     imageUrl: 'https://example.com/image.png',
-      //     imageWidth: '175px',
-      //     imageHeight: '175px',
-      //     imageFooterUrl: 'https://example.com/footer.png',
-      //     imageFooterWidth: '75px',
-      //     imageFooterHeight: '75px',
-      //     centerTitle: true,
-      //     centerDescription: true,
-      //     centerImage: true,
-      //     centerFooterImage: true,
-      //     centerBody: true
-      //   },
-      //   'POST'
-      // );
-      // const sendNotification = httpsCallable(functions, 'sendNotificationToSpecificUser');
-      // // react firebase query where , where email = receiverEmail and then get the user id ;
-      // //  const { eventType, senderID, receiverID, postID } = data;
-      // await sendNotification({
-      //   eventType: 'submission',
-      //   senderID: user.uid, // Admin id or the current
-      //   receiverID: '', // User id that u want tto send
-      //   postID: submissionId // Event Id
-      // });
+
+      const usersRef = collection(db, 'users');
+      const userQuery = query(usersRef, where('email', '==', receiverEmail));
+      const querySnapshot = await getDocs(userQuery);
+
+      if (querySnapshot.empty) {
+        console.error('No user found with email:', receiverEmail);
+        return false;
+      }
+
+      const receiverDoc = querySnapshot.docs[0];
+      const receiverID = receiverDoc.id;
+
+      if (receiverID === user.uid) {
+        console.error('Cannot send email to yourself');
+        return false;
+      }
+
+      await requestApiData(
+        'https://hey-local-be.onrender.com/mail/send-sandbox',
+        {
+          senderEmail: 'fitlink2025@gmail.com',
+          senderPassword: 'lsonjycjgxkqurmq',
+          companyName: 'FitLink',
+          to: receiverEmail,
+          subject: 'Update on Your Submission Status',
+          title: `Submission Status: ${newStatus}`,
+          text: `Dear User, your submission status has been updated to: ${newStatus}.`,
+          description: `We would like to inform you that your submission has been ${newStatus} after a thorough review by our team. If you have any questions or require further clarification, please feel free to contact us.`,
+          imageUrl:
+            'https://firebasestorage.googleapis.com/v0/b/fitlink-b3d6b.firebasestorage.app/o/images%2Ffitlink-one.jpg?alt=media&token=ba33d84b-6b36-4886-984e-c3c8d701b7a1',
+          imageWidth: '175px',
+          imageHeight: '175px',
+          imageFooterUrl:
+            'https://firebasestorage.googleapis.com/v0/b/fitlink-b3d6b.firebasestorage.app/o/images%2Ffitlink-logo-3.jpg?alt=media&token=cdd6ed02-edef-41ac-bba3-42dc70363c0c',
+          imageFooterWidth: '75px',
+          imageFooterHeight: '75px',
+          centerTitle: true,
+          centerDescription: true,
+          centerImage: true,
+          centerFooterImage: true,
+          centerBody: true
+        },
+        'POST'
+      );
+
       return true;
     } catch (error) {
       console.error('Error updating submission:', error);
@@ -99,7 +114,7 @@ export default function SubmitTables({ formEvents, loading }) {
 
   const handleApprove = async () => {
     if (!selectedSubmission) {
-      console.error('No submission selected');
+      console.error('No submission selected.');
       return;
     }
     await updateSubmissionAndUser(selectedSubmission, 'approved', receiverEmail);
@@ -127,14 +142,20 @@ export default function SubmitTables({ formEvents, loading }) {
         return theme.palette.common.black;
     }
   }, []);
+
   const getRows = useMemo(() => {
-    return formEvents.map((form) => {
-      return {
+    return formEvents
+      .slice() // Clone the array
+      .sort((a, b) => {
+        const dateA = a.submission_date?.toDate?.() || new Date(0);
+        const dateB = b.submission_date?.toDate?.() || new Date(0);
+        return dateB - dateA; // Descending order
+      })
+      .map((form) => ({
         ...form,
         color: getColorStatus(form?.status)
-      };
-    });
-  }, [formEvents]);
+      }));
+  }, [formEvents, getColorStatus]);
 
   const getColumns = useMemo(() => {
     if (formEvents?.length > 0) {
@@ -142,16 +163,17 @@ export default function SubmitTables({ formEvents, loading }) {
 
       return dataKeys.map((item, index) => ({
         id: item,
-        label: displayColumns[index] || item, // Fallback to key name if no display column is found
+        label: displayColumns[index] || item,
         minWidth: 100,
         isLink: ['WebSite', 'Document'].includes(displayColumns[index] || ''),
-        document: ['Document'].includes(displayColumns[index] || '')
+        document: ['Document'].includes(displayColumns[index] || ''),
+        hightLightText
       }));
     }
 
     return displayColumns.map((item, index) => ({
       id: item,
-      label: item, // Ensure label is defined
+      label: item,
       minWidth: 100,
       isLink: ['WebSite', 'Document'].includes(item),
       document: ['Document'].includes(item)
@@ -167,6 +189,7 @@ export default function SubmitTables({ formEvents, loading }) {
     }
     return () => clearTimeout(timeOut);
   }, [loading]);
+
   if (pageState) {
     return <SimpleLoading height="50vh" />;
   }
@@ -179,10 +202,7 @@ export default function SubmitTables({ formEvents, loading }) {
             onClick={handleApprove}
             className={classes.button}
             variant="text"
-            sx={{
-              alignItems: 'flex-start',
-              justifyContent: 'flex-start'
-            }}
+            sx={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}
           >
             <Stack direction={'row-reverse'} alignItems={'center'} justifyContent={'flex-start'} spacing={1}>
               <Typography variant="body1">Approved</Typography>
@@ -193,11 +213,7 @@ export default function SubmitTables({ formEvents, loading }) {
             sx={{
               alignItems: 'flex-start',
               justifyContent: 'flex-start',
-              '&:hover': {
-                backgroundColor: '#fbc3bc',
-                overflow: 'hidden',
-                borderRadius: '0px'
-              }
+              '&:hover': { backgroundColor: '#fbc3bc', overflow: 'hidden', borderRadius: '0px' }
             }}
             onClick={handleReject}
             className={classes.button}

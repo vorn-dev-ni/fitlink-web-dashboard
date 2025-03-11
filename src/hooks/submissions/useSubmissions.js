@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from 'utils/config/firebase';
 import { collectionNames } from 'utils/helper';
 import dayjs from 'dayjs';
@@ -11,8 +11,10 @@ export const useSubmissions = () => {
 
   useEffect(() => {
     const formCollections = collection(db, collectionNames.submission);
+    const q = query(formCollections, orderBy('submission_date', 'desc'));
+
     const unsubscribe = onSnapshot(
-      formCollections,
+      q,
       (snapshot) => {
         const formApprovals = snapshot.docs.map((doc) => {
           const timestamp = doc.data()?.submission_date;

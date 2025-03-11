@@ -38,13 +38,20 @@ export default function Notification() {
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [readCount, setReadCount] = useState(0);
-  const [showAll, setShowAll] = useState(false);
   const [seenIds, setSeenIds] = useState(new Set());
 
-  // Reset seenIds when the component mounts
+  // Load seenIds from localStorage on component mount
   useEffect(() => {
-    setSeenIds(new Set());
+    const storedSeenIds = localStorage.getItem('seenIds');
+    if (storedSeenIds) {
+      setSeenIds(new Set(JSON.parse(storedSeenIds)));
+    }
   }, []);
+
+  // Save seenIds to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('seenIds', JSON.stringify([...seenIds]));
+  }, [seenIds]);
 
   // Convert submission_date to a comparable value (timestamp in milliseconds)
   const getSubmissionTimestamp = (submission) => {
@@ -69,15 +76,7 @@ export default function Notification() {
   }, [formEvents, seenIds]);
 
   const handleToggle = () => {
-    setOpen((prevOpen) => {
-      if (!prevOpen) {
-        // Mark all current new submissions as seen when opening
-        const newSeen = new Set([...seenIds, ...newSubmissions.map((s) => s.id)]);
-        setSeenIds(newSeen);
-        setReadCount(0); // Reset the notification count
-      }
-      return !prevOpen;
-    });
+    setOpen((prevOpen) => !prevOpen);
   };
 
   const handleClose = (event) => {
@@ -88,11 +87,15 @@ export default function Notification() {
   const handleMarkAllAsRead = () => {
     const allIds = new Set([...seenIds, ...formEvents.map((s) => s.id)]);
     setSeenIds(allIds);
-    setReadCount(0);
+    setReadCount(0); // Reset the count to 0
   };
 
   const handleNotificationClick = (submission) => {
-    console.log('Clicked Submission:', submission); // Debug
+    // Mark the clicked notification as seen
+    if (!seenIds.has(submission.id)) {
+      setSeenIds((prevSeenIds) => new Set([...prevSeenIds, submission.id]));
+      setReadCount((prevCount) => prevCount - 1); // Decrement the read count
+    }
     navigate('/submissions/view', { state: { submission } });
   };
 
@@ -166,7 +169,7 @@ export default function Notification() {
                       }
                     }}
                   >
-                    {(showAll ? sortedSubmissions.slice(0, 8) : newSubmissions.slice(0, 8)).map((submission) => (
+                    {sortedSubmissions.slice(0, 8).map((submission) => (
                       <React.Fragment key={submission.id}>
                         <ListItemButton onClick={() => handleNotificationClick(submission)}>
                           <ListItemAvatar>
@@ -194,15 +197,6 @@ export default function Notification() {
                         <Divider />
                       </React.Fragment>
                     ))}
-                    <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }} onClick={() => setShowAll((prev) => !prev)}>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6" color="primary">
-                            {showAll ? 'Show New Only' : 'View All'}
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
                   </List>
                 </MainCard>
               </ClickAwayListener>
