@@ -30,6 +30,9 @@ export default function SubmitTables({ formEvents, loading, hightLightText }) {
   const [receiverEmail, setReceiverEmail] = useState('');
 
   const handleClick = (event, rowData) => {
+    // alert('click asdsa', JSON.stringify(rowData.id));
+
+    // console.log('click ', rowData);
     setAnchorEl(event.currentTarget);
     setSelectedSubmission(rowData.id);
     setSubmissionId(rowData.id);
