@@ -104,6 +104,16 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
       body = text;
       notificationData.postID = postID;
       break;
+    case 'videoLiked':
+      title = `${userDataSender?.fullName}`;
+      body = `${userDataSender?.fullName} has like your video.`;
+      notificationData.postID = postID;
+      break;
+    case 'videoCommentLiked':
+      title = `${userDataSender?.fullName}`;
+      body = `${userDataSender?.fullName} has comment on your video.`;
+      notificationData.postID = postID;
+      break;
     default:
       throw new functions.https.HttpsError('invalid-argument', 'Invalid event type');
   }
@@ -148,9 +158,13 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
     throw new functions.https.HttpsError('internal', 'Failed to send notification');
   }
 
-  // Store the notification in Firestore
-  const notificationRef = admin.firestore().collection('users').doc(receiverID).collection('notifications').doc();
-  await notificationRef.set({
+  // const notificationRef = admin.firestore().collection('users').doc(receiverID).collection('notifications').doc();
+  const notificationRef = admin.firestore().collection('users').doc(receiverID);
+  await notificationRef.update({
+    notificationReadCount: admin.firestore.FieldValue.increment(1)
+  });
+  const newNotificationRef = notificationRef.collection('notifications').doc();
+  await newNotificationRef.set({
     type: eventType,
     senderID: senderID,
     postID: postID || null,
