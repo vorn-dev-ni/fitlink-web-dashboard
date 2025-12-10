@@ -18,6 +18,8 @@ const ErrorPage = Loadable(lazy(() => import('pages/error/ErrorPage')));
 const EventCreateEdit = Loadable(lazy(() => import('pages/event/form')));
 const UserPage = Loadable(lazy(() => import('pages/users/index')));
 const EventPage = Loadable(lazy(() => import('pages/event')));
+const ReportPage = Loadable(lazy(() => import('pages/reports')));
+
 const SubmitPage = Loadable(lazy(() => import('pages/submissions')));
 const UserCreateEdit = Loadable(lazy(() => import('pages/users/form')));
 
@@ -28,6 +30,7 @@ const SubmissionViewPage = Loadable(lazy(() => import('pages/submissions/compone
 // Layouts
 const SubmissionLayout = Loadable(lazy(() => import('layout/Submission')));
 const EventLayout = Loadable(lazy(() => import('layout/Event')));
+const ReportLayout = Loadable(lazy(() => import('layout/Report')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -100,6 +103,16 @@ const MainRoutes = {
         {
           path: ':id/edit',
           element: <EventCreateEdit />
+        }
+      ]
+    },
+    {
+      path: 'reports',
+      element: <ReportLayout />,
+      children: [
+        {
+          path: '',
+          element: <ReportPage />
         }
       ]
     },

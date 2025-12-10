@@ -7,11 +7,12 @@ export const formatDateApp = (date) => {
 };
 export const collectionNames = {
   // eslint-disable-next-line prettier/prettier
-  users: "users",
+  users: 'users',
   // eslint-disable-next-line prettier/prettier
-  submission: "submissions",
+  submission: 'submissions',
   // eslint-disable-next-line prettier/prettier
-  event: "events",
+  event: 'events',
+  reports: 'reports'
 };
 
 export const resetScroll = () => {
