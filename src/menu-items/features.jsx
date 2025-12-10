@@ -7,7 +7,8 @@ import {
   ChromeOutlined,
   FontSizeOutlined,
   LoadingOutlined,
-  FormOutlined
+  FormOutlined,
+  CarryOutOutlined
 } from '@ant-design/icons';
 
 // icons
@@ -19,7 +20,8 @@ const icons = {
   LoadingOutlined,
   AppstoreAddOutlined,
   ChromeOutlined,
-  FormOutlined
+  FormOutlined,
+  CarryOutOutlined
 };
 
 // ==============================|| MENU ITEMS - UTILITIES ||============================== //
@@ -35,6 +37,14 @@ const features = {
       type: 'item',
       url: '/events',
       icon: icons.ChromeOutlined,
+      target: false
+    },
+    {
+      id: 'report',
+      title: 'Reports',
+      type: 'item',
+      url: '/reports',
+      icon: icons.CarryOutOutlined,
       target: false
     },
     {

@@ -6,9 +6,10 @@
  *
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
-import { Message } from 'firebase-admin/messaging';
 import * as admin from 'firebase-admin';
+import { Message } from 'firebase-admin/messaging';
 import * as functions from 'firebase-functions/v1';
+
 import sharp from 'sharp';
 admin.initializeApp();
 // Start writing functions
@@ -27,6 +28,97 @@ export const handleInvalidToken = functions.firestore.document('users/{userId}')
   }
   return null;
 });
+export const reportEndpoint = functions.https.onRequest(async (req, res): Promise<void> => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
+    return;
+  }
+
+  try {
+    const body = req.body;
+
+    if (!body || !body.type) {
+      res.status(400).json({ error: 'Missing required field "type"' });
+      return;
+    }
+
+    const { type, postId } = body;
+
+    // Add a document to Firestore "reports" collection
+    const reportRef = admin.firestore().collection('reports').doc();
+    await reportRef.set({
+      type: type,
+      postId: postId,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(200).json({
+      message: 'Report saved successfully',
+      reportId: reportRef.id
+    });
+    return;
+  } catch (error: any) {
+    console.error('Error saving report:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+export const deletePostOrVideoEndpoint = functions.https.onRequest(async (req, res) => {
+  //   {
+  //   "type": "video",
+  //   "postId": "abc123"
+  // }
+
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
+    return;
+  }
+
+  try {
+    const { type, postId } = req.body;
+
+    if (!type || !postId) {
+      res.status(400).json({ error: 'Missing required fields "type" or "postId"' });
+      return;
+    }
+
+    let collectionName = '';
+
+    // Select collection based on type
+    switch (type) {
+      case 'video':
+        collectionName = 'videos';
+        break;
+      case 'post':
+        collectionName = 'posts';
+        break;
+      default:
+        res.status(400).json({ error: 'Invalid "type". Use "video" or "post"' });
+        return;
+    }
+
+    // Check if the document exists
+    const docRef = admin.firestore().collection(collectionName).doc(postId);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      res.status(404).json({ error: `${type} not found with ID: ${postId}` });
+      return;
+    }
+
+    // Delete document
+    await docRef.delete();
+
+    res.status(200).json({
+      message: `${type} deleted successfully`,
+      postId,
+      collection: collectionName
+    });
+  } catch (err: any) {
+    console.error('Error deleting:', err);
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+});
+
 export const sendNotificationToSpecificUser = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('permission-denied', 'User must be authenticated');
@@ -104,6 +196,16 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
       body = text;
       notificationData.postID = postID;
       break;
+    case 'videoLiked':
+      title = `${userDataSender?.fullName}`;
+      body = `${userDataSender?.fullName} has like your video.`;
+      notificationData.postID = postID;
+      break;
+    case 'videoCommentLiked':
+      title = `${userDataSender?.fullName}`;
+      body = `${userDataSender?.fullName} has comment on your video.`;
+      notificationData.postID = postID;
+      break;
     default:
       throw new functions.https.HttpsError('invalid-argument', 'Invalid event type');
   }
@@ -148,9 +250,13 @@ export const sendNotificationToSpecificUser = functions.https.onCall(async (data
     throw new functions.https.HttpsError('internal', 'Failed to send notification');
   }
 
-  // Store the notification in Firestore
-  const notificationRef = admin.firestore().collection('users').doc(receiverID).collection('notifications').doc();
-  await notificationRef.set({
+  // const notificationRef = admin.firestore().collection('users').doc(receiverID).collection('notifications').doc();
+  const notificationRef = admin.firestore().collection('users').doc(receiverID);
+  await notificationRef.update({
+    notificationReadCount: admin.firestore.FieldValue.increment(1)
+  });
+  const newNotificationRef = notificationRef.collection('notifications').doc();
+  await newNotificationRef.set({
     type: eventType,
     senderID: senderID,
     postID: postID || null,

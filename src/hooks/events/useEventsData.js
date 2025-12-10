@@ -3,13 +3,6 @@ import { collection, doc, getDoc, onSnapshot, orderBy, query, Timestamp } from '
 import { db } from 'utils/config/firebase';
 import { collectionNames, formatNumberToPrice } from 'utils/helper';
 import dayjs from 'dayjs';
-const convertTimestampToDate = (timestamp) => {
-  // Ensure timestamp is a Firestore Timestamp
-  if (timestamp instanceof Timestamp) {
-    return timestamp.toDate(); // Convert Firestore Timestamp to JavaScript Date
-  }
-  return null; // Handle case if timestamp is not valid
-};
 
 export const useEventsData = (sortBy) => {
   const [events, setEvents] = useState([]);
