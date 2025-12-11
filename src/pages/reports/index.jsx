@@ -8,9 +8,9 @@ import { useTheme } from '@mui/material/styles';
 import AppSnackBar from 'components/SnackBar';
 import TableAppBar from 'components/TableAppBar';
 import { useEventAction } from 'hooks';
-import { useReportData } from 'hooks/events/useReportData';
+import { useReportData } from 'hooks/useReportData';
 import AppPageHeader from 'pages/components/AppPageHeader';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { resetScroll } from 'utils/helper';
 import ReportTable from './components/ReportTable';
@@ -22,11 +22,10 @@ export default function EventPage() {
   const [hightLightText, setHighlightText] = useState('');
   const { reports, loading, error: errorReport } = useReportData(sortBy);
   const { handleDeleteEvent } = useEventAction();
-  const [localEventState, setLocalReports] = useState([]);
   const navigate = useNavigate();
-  const mutateLocalReport = useMemo(() => {
-    return reports.filter((item) => item.eventTitle?.toLowerCase()?.includes(hightLightText?.toLowerCase()));
-  }, [reports, hightLightText]);
+  // const mutateLocalReport = useMemo(() => {
+  //   return reports.filter((item) => item.eventTitle?.toLowerCase()?.includes(hightLightText?.toLowerCase()));
+  // }, [reports, hightLightText]);
   const handleChange = useCallback(
     (e) => {
       const text = e.target.value;
@@ -45,9 +44,6 @@ export default function EventPage() {
   }, []);
 
   useEffect(() => {
-    setLocalReports(mutateLocalReport);
-  }, [mutateLocalReport]);
-  useEffect(() => {
     resetScroll();
   }, []);
   useEffect(() => {
@@ -55,6 +51,7 @@ export default function EventPage() {
       setShowError(true);
     }
   }, [errorReport]);
+  console.log('localReports', reports);
 
   return (
     <Box component={'div'}>
@@ -83,15 +80,9 @@ export default function EventPage() {
           navigate('create');
         }}
         handleChangeText={handleChange}
-        label={'Events'}
+        label={'Reports'}
       />
-      <ReportTable
-        hightLightText={hightLightText}
-        events={localEventState}
-        loading={loading}
-        onEdit={onClickEdit}
-        onDelete={onClickDelete}
-      />
+      <ReportTable hightLightText={hightLightText} reports={reports} loading={loading} onEdit={onClickEdit} onDelete={onClickDelete} />
     </Box>
   );
 }
