@@ -15,13 +15,16 @@ export const useReportData = (sortBy) => {
     const unsubscribe = onSnapshot(
       queryReports,
       (snapshot) => {
-        const eventData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          postId: doc.data().postId,
-          type: doc.data().type,
-          reason: doc.data().reason
+        const reports = snapshot.docs.map((doc) => ({
+          type: doc.data().type ?? 'N/A',
+
+          postId: doc.data().postId ?? 'N/A',
+
+          reason: doc.data().reason ?? 'N/A'
         }));
-        setReports(eventData);
+
+        console.log('Report collection is', reports);
+        setReports(reports);
         setLoading(false);
       },
       (err) => {

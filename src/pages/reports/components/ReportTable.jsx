@@ -9,8 +9,8 @@ import useStyles from 'pages/submissions/Submission.style';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import guidelines from 'themes/styles';
-const displayColumns = ['Type', 'Post Id', 'Reason'];
-const ReportTable = ({ onDelete, onEdit, events, loading, hightLightText }) => {
+const displayColumns = ['Reason Type', 'ID', 'Report Reason'];
+const ReportTable = ({ onDelete, onEdit, reports, loading, hightLightText }) => {
   const [pageState, setPageState] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
@@ -33,12 +33,12 @@ const ReportTable = ({ onDelete, onEdit, events, loading, hightLightText }) => {
     setAnchorEl(null);
   };
   const getRows = useMemo(() => {
-    return events;
-  }, [events]);
+    return reports;
+  }, [reports]);
 
   const getColumns = useMemo(() => {
-    if (events?.length && events != undefined) {
-      const data = Object.keys(events[0]);
+    if (reports?.length && reports != undefined) {
+      const data = Object.keys(reports[0]);
       return data?.map((item, index) => ({
         id: item + '',
         label: displayColumns[index],
@@ -54,7 +54,7 @@ const ReportTable = ({ onDelete, onEdit, events, loading, hightLightText }) => {
       minWidth: 130,
       isAvatar: item == 'feature' ? true : false
     }));
-  }, [events, displayColumns]);
+  }, [reports, displayColumns]);
   useEffect(() => {
     let timeOut;
     if (!loading) {
